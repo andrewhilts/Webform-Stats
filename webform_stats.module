@@ -1,0 +1,160 @@
+<?php
+
+/*
+ * Implementation of hook_menu()
+ */
+function webform_stats_menu(){
+	$items = array();
+	$items['admin/settings/webform_stats'] = array(
+	    'title' => t('Webform Stats Settings'),
+	    'description' => t('Configure how Webform Stats Reports are generated'),
+	    'page callback' => 'webform_stats_admin',
+	    'access arguments' => array('access administration pages'),
+			'file' => 'webform_stats.admin.inc',
+	    'type' => MENU_NORMAL_ITEM,
+	   );
+	
+		$items['admin/settings/webform_stats/type/add'] = array(
+	    'title' => t('Add Grouping'),
+	    'description' => t('Add a new statistical grouping'),
+	    'page callback' => 'webform_stats_admin',
+	    'access arguments' => array('access administration pages'),
+			'file' => 'webform_stats.admin.inc',
+	    'type' => MENU_DEFAULT_LOCAL_TASK,
+			'weight' => -50,
+	   );
+	
+	webform_stats_build_report_type_menu_options($items);
+	
+	// $items['admin/settings/webform_stats/%'] = array(
+	//     'title' => t('Report Type Settings'),
+	//     'description' => t('Configure how reports are generated for this report type'),
+	//     'page callback' => 'webform_stats_generator_admin_type',
+	//     'access arguments' => array('access administration pages'),
+	// 	'file' => 'webform_stats_generator.admin.inc',
+	//     'type' => MENU_NORMAL_ITEM,
+	//    );
+	// $items['admin/settings/webform_stats/add'] = array(
+	//     'title' => t('Add a Report Type'),
+	//     'description' => t('Add a new report type'),
+	//     'page callback' => 'webform_stats_generator_admin_type_add',
+	//     'access arguments' => array('access administration pages'),
+	// 	'file' => 'webform_stats_generator.admin.inc',
+	//     'type' => MENU_NORMAL_ITEM,
+	//    );
+	// $items['webform_stats'] = array(
+	//     'title' => t('Webform Report Generator'),
+	//     'description' => t('Configure how Webform Reports are generated'),
+	//     'page callback' => 'webform_stats_generator_display',
+	//     'access arguments' => array('access administration pages'),
+	//     'type' => MENU_NORMAL_ITEM,
+	//    );
+	// $items['webform_stats/%'] = array(
+	//     'title' => t('Webform Report Generator'),
+	//     'description' => t('Configure how Webform Reports are generated'),
+	//     'page callback' => 'webform_stats_generator_display',
+	//     'access arguments' => array('access administration pages'),
+	// 	'page arguments'=> array(1),
+	//     'type' => MENU_NORMAL_ITEM,
+	//    );
+  return $items;
+}
+
+//Build menu subitems for node types
+function webform_stats_build_report_type_menu_options(&$items){
+  $report_types = webform_stats_get_types();
+  if(!empty($report_types)){
+    foreach($report_types as $i => $value){
+			$type_id = $value->type_id;
+$items["admin/settings/webform_stats/type/$type_id"] = array(
+  	    'title' => $value->name,
+  	    'description' => 'Manage Statistical Groups',
+  			'page callback' => 'webform_stats_admin_type',
+        'page arguments' => array(4),
+  			'access arguments' => array('access administration pages'),
+        'file' => 'webform_stats.admin.inc',
+				'weight' => $i,
+        );
+        $items["admin/settings/webform_stats/type/$type_id"]['type'] = MENU_LOCAL_TASK;
+$items["admin/settings/webform_stats/type/$type_id/manage"] = array(
+  	    'title' => t('Grouping Settings'),
+  	    'description' => 'Manage Statistical Group Settings',
+  			'page callback' => 'webform_stats_admin_type',
+        'page arguments' => array(4),
+  			'access arguments' => array('access administration pages'),
+        'file' => 'webform_stats.admin.inc',
+				'type' => MENU_DEFAULT_LOCAL_TASK,
+				'weight' => 1,
+        );
+$items["admin/settings/webform_stats/type/$type_id/nodes"] = array(
+  	    'title' => t('Grouping Nodes'),
+  	    'description' => 'Manage Statistical Group Nodes',
+  			'page callback' => 'webform_stats_admin_type_nodes',
+        'page arguments' => array(4),
+  			'access arguments' => array('access administration pages'),
+        'file' => 'webform_stats.admin.inc',
+				'weight' => 2,
+				'type' => MENU_LOCAL_TASK,
+        );
+$items["admin/settings/webform_stats/type/$type_id/metrics"] = array(
+  	    'title' => t('Grouping Metrics'),
+  	    'description' => 'Manage Statistical Group Metrics',
+  			'page callback' => 'webform_stats_admin_type_metrics',
+        'page arguments' => array(4),
+  			'access arguments' => array('access administration pages'),
+        'file' => 'webform_stats.admin.inc',
+				'weight' => 3,
+				'type' => MENU_LOCAL_TASK,
+        );
+    }
+  }
+}
+
+function webform_stats_get_types(){
+	$types = array();
+	$sql = "SELECT type_id, name FROM {webform_stats_report_types} ORDER BY type_id ASC";
+	$result = db_query($sql);
+	while($type = db_fetch_object($result)) {
+		$types[] = $type;
+	}
+	return $types;
+}
+
+function webform_stats_get_type_details($type_id){
+	$types = array();
+	$sql = "SELECT * FROM {webform_stats_report_types} WHERE type_id = %d LIMIT 1";
+	$result = db_query($sql,$type_id);
+	$type = db_fetch_object($result);
+	return $type;
+}
+
+function webform_stats_get_webforms() {
+  $webforms = array();
+  $webform_types = variable_get('webform_node_types', array('webform'));
+  $placeholders = db_placeholders($webform_types, 'varchar');
+  $result = db_query("SELECT n.nid, n.title FROM {node} n WHERE n.type in ($placeholders) ORDER BY n.language, n.nid DESC", $webform_types);
+  while ($row = db_fetch_object($result)) {
+    $webforms[$row->nid] = t($row->title);
+  }
+  return $webforms;
+}
+
+function webform_stats_get_type_webforms($type){
+	$type_webforms = array();
+	$sql = "SELECT nid FROM {webform_stats_nodes} WHERE type_id = %d";
+	$result = db_query($sql,$type);
+	while ($row = db_fetch_object($result)) {
+    $type_webforms[$row->nid] = $row->nid;
+  }
+	return $type_webforms;
+}
+
+function webform_stats_get_type_metrics($type){
+	$type_metrics = array();
+	$sql = "SELECT * FROM {webform_stats_report_type_metrics} WHERE type_id = %d";
+	$result = db_query($sql,$type);
+	while ($metric = db_fetch_object($result)) {
+    $type_metrics[] = $metric;
+  }
+	return $type_metrics;
+}

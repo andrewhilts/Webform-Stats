@@ -1,0 +1,81 @@
+<?php
+
+/*
+	Implementation of hook_schema()
+*/
+function webform_stats_schema(){
+	
+	$schema['webform_stats_nodes'] = array(
+    'fields' => array(
+      'nid' => array('type' => 'int', 'not null' => TRUE),
+			'type_id' => array('type' => 'int', 'not null' => TRUE),
+			'complete' => array('type' => 'int','default' => 0),
+    ),
+    'primary key' => array('nid','type_id'),
+  );
+
+	$schema['webform_stats_report_types'] = array(
+		'fields' => array(
+			'type_id' => array('type' => 'serial', 'not null' => TRUE,),
+			'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE), 
+			'report_interval' => array('type' => 'int', 'not null' => TRUE),
+			'base_date' => array('type' => 'int', 'not null' => TRUE),
+			'cron' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+			'scheduling_hour' => array('type' => 'int'),
+			'scheduling_day' => array('type' => 'int'),
+			'scheduling_window' => array('type' => 'int'),
+		),
+		'primary key' => array('type_id',),
+	);
+	$schema['webform_stats_report_type_metrics'] = array(
+		'fields' => array(
+			'metric_id' => array('type' => 'serial', 'not null' => TRUE,), 
+			'type_id' => array('type' => 'int', 'not null' => TRUE,),
+			'component' => array('type' => 'varchar', 'length' => 50, 'not null' => TRUE),
+			'form_key' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+			'form_key_fallback' => array('type' => 'int', 'not null' => TRUE),
+			'query_function' => array('type' => 'varchar', 'length' => 50, 'not null' => TRUE),
+		),
+		'primary key' => array('metric_id'),
+		'indexes' => array('type_id' => array('type_id')),
+	);
+	$schema['webform_stats_reports'] = array(
+		'fields' => array(
+    	'report_id' => array('type' => 'serial', 'not null' => TRUE,), 
+			'nid' => array('type' => 'int', 'not null' => TRUE),
+			'type_id' => array('type' => 'int', 'not null' => TRUE),
+	    'report_period_start' => array('type' => 'int', 'not null' => TRUE),
+			'report_period_end' => array('type' => 'int', 'not null' => TRUE),
+			'generated_by' => array('type' => 'int'),
+			'report_date' => array('type' => 'int', 'not null' => TRUE),
+			'flag' => array('type' => 'varchar', 'length' => 20),
+		 ),
+		'primary key' => array('report_id'),
+		'indexes' => array('type_id' => array('type_id')),
+	);
+	
+	$schema['webform_stats_report_data'] = array(
+		'fields' => array(
+			'report_id' => array('type' => 'int', 'not null' => TRUE),
+			'metric_id' => array('type' => 'int', 'not null' => TRUE),
+			'data' => array('type' => 'smallint'),
+		),
+		'primary key' => array('report_id','metric_id'),
+		'indexes' => array('report_id' => array('report_id')),
+	);
+	return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function webform_stats_install() {
+  drupal_install_schema('webform_stats');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function webform_stats_uninstall() {
+  drupal_uninstall_schema('webform_stats');
+}
