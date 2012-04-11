@@ -127,9 +127,114 @@ $items["admin/settings/webform_stats/type/$type_id/metrics"] = array(
 	}
 }
 
+function webform_stats_cron(){
+	module_load_include('inc', 'webform_stats', 'webform_stats_process');
+	$stat_groupings = webform_stats_get_types();
+	//Iterate through each stat grouping and check whether it's time to generate reports or not
+	foreach($stat_groupings as $i => $type){
+		$is_time = false;
+		$is_time = webform_stats_type_check_if_time($type);
+		if($is_time){
+			webform_stats_type_queue_process($type->type_id);
+			//work on queue
+		}
+		else{
+			dsm('not time');
+			//Destroy the cue that exists (to rebuild next time).
+		}
+	}
+}
+
+//Create queue workers for each grouping type and each queue type
+function webform_stats_cron_queue_info() {
+  foreach(webform_stats_get_types() as $i => $type){
+		$queue_node_prep = "webform_stats_".$type->type_id."_nodeprep";
+		$queue[$queue_node_prep] = array(
+    	'worker callback' => '_webform_stats_queue_node_prep_worker',
+			'time' => 20,
+  	);
+	}
+	$queue["webform_stats_metric_build"] = array(
+    	'worker callback' => '_webform_stats_queue_metric_build_worker',
+			'time' => 20,
+  );
+  return $queue;
+}
+
+function _webform_stats_queue_node_prep_worker($item){
+	watchdog('webform_stats',"Prepping item ".$item['node_info']->nid);
+	module_load_include('inc', 'webform_stats', 'webform_stats_process');
+	
+	//Check for submissions
+	$node_submissions = webform_stats_check_for_submissions($item['node_info']->nid);
+	if($node_submissions){
+		$item['node_info']->submissions = $node_submissions;
+		$type = webform_stats_get_type_details($item['type_id']);
+		
+		$completed = webform_stats_completeness_check($item['node_info'],$type->type_id);
+		if($completed){
+			return "completed";
+		}
+		$metrics = webform_stats_get_type_metrics($item['type_id']);
+		
+		//Get metric report building queue
+		$queue = drupal_queue_get("webform_stats_metric_build");
+		$queue->createQueue(); // initialize
+		
+		foreach($metrics as $i => $metric){
+			//Add metric to item
+			$item['metric'] = $metric;
+			
+			//Check if reports are needed for this type node's metrics
+			$item['report_date_range'] = webform_stats_node_type_metric_data_check($item['node_info'],$type,$metric);
+			//Build range of reports for type node metric	
+			if($item['report_date_range']){
+				$queue->createItem($item);
+			}
+		}
+	}
+}
+
+function _webform_stats_queue_metric_build_worker($item){
+	module_load_include('inc', 'webform_stats', 'webform_stats_process');
+	$type = webform_stats_get_type_details($item['type_id']);
+	
+	//Build array of reporting periods
+	$reporting_periods = webform_stats_build_date_range($item['report_date_range'],$type->report_interval);
+	if(!is_array($reporting_periods)){
+		return FALSE;
+	}
+
+	//Loop through date range, add reporting workers for each date interval
+	foreach($reporting_periods as $i => $reporting_period){
+
+		if(!$reporting_period->min && !$reporting_period->max){
+			return FALSE;
+		}
+
+		//Check if report exists for this node/type at for current reporting period. If it does, get report ID; if not, create one and get ID.
+		$report_id = webform_stats_report_init($reporting_period,$item['node_info']->nid,$type->type_id);
+		watchdog('webform_stats',$report_id);
+		//Create worker
+		$items[] = array(
+			'report_id' => $report_id,
+			'nid' => $item['node_info']->nid,
+			'type_id' => $type->type_id,
+			'reporting_period' => $reporting_period,
+			'metric' => $item['metric'],
+		);
+	}
+	
+	$queue = drupal_queue_get('webform_stats_metric_data_get');
+	$queue->createQueue(); // initialize
+	foreach ($items as $item) {
+		$queue->createItem($item); // each item passed as param to worker
+	}
+}
+
 function webform_stats_get_types(){
 	$types = array();
-	$sql = "SELECT type_id, name FROM {webform_stats_report_types} ORDER BY type_id ASC";
+	$sql = "SELECT * FROM {webform_stats_report_types} ORDER BY type_id ASC";
 	$result = db_query($sql);
 	while($type = db_fetch_object($result)) {
 		$types[] = $type;
@@ -156,12 +261,17 @@ function webform_stats_get_webforms() {
   return $webforms;
 }
 
-function webform_stats_get_type_webforms($type){
+function webform_stats_get_type_webforms($type,$depth = 'min'){
 	$type_webforms = array();
-	$sql = "SELECT nid FROM {webform_stats_nodes} WHERE type_id = %d";
+	$sql = "SELECT wsn.nid, wsn.complete, n.status published FROM {webform_stats_nodes} wsn INNER JOIN {node} n ON (wsn.nid = n.nid) WHERE wsn.type_id = %d";
 	$result = db_query($sql,$type);
 	while ($row = db_fetch_object($result)) {
-    $type_webforms[$row->nid] = $row->nid;
+    if($depth == "min"){
+			$type_webforms[$row->nid] = $row->nid;
+		}
+		else{
+			$type_webforms[$row->nid] = $row;
+		}
   }
 	return $type_webforms;
 }

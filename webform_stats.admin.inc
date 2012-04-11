@@ -20,6 +20,7 @@ function webform_stats_admin_type_delete($type_id){
 }
 function webform_stats_admin_type_metrics($type_id){
 	$output = webform_stats_metric_table(webform_stats_get_type_metrics($type_id));
+	$output .= "<h2>Add new Metric</h2>";
 	$output .= drupal_get_form('webform_stats_types_metrics_form',$type_id);
 	return $output;
 }
@@ -187,7 +188,7 @@ function webform_stats_types_edit_nodes_form(&$form_state, $type = false){
     	'#title' => 'Webforms in Reporting Group',
     	'#description' => t('Select the webforms you would like to include in this group.'),
     	'#options' => $webforms,
-    	'#default_value' => webform_stats_get_type_webforms($type),
+    	'#default_value' => webform_stats_get_type_webforms($type,'min'),
 		);
 		$form['submit'] = array(
 	    '#type' => 'submit',
@@ -197,7 +198,7 @@ function webform_stats_types_edit_nodes_form(&$form_state, $type = false){
 }
 
 function webform_stats_types_edit_nodes_form_submit($form, &$form_state){
-	$type_nodes = webform_stats_get_type_webforms($form_state['values']['type']);
+	$type_nodes = webform_stats_get_type_webforms($form_state['values']['type'],'min');
 	foreach($form_state['values']['nodes'] as $i => $node){
 		if($node > 0){
 			$nodes[$i] = $i;

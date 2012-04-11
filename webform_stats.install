@@ -54,13 +54,12 @@ function webform_stats_schema(){
 		 ),
 		'primary key' => array('report_id'),
 		'indexes' => array('type_id' => array('type_id')),
-	);
-	
+	);	
 	$schema['webform_stats_report_data'] = array(
 		'fields' => array(
 			'report_id' => array('type' => 'int', 'not null' => TRUE),
 			'metric_id' => array('type' => 'int', 'not null' => TRUE),
-			'data' => array('type' => 'smallint'),
+			'data' => array('type' => 'int'),
 		),
 		'primary key' => array('report_id','metric_id'),
 		'indexes' => array('report_id' => array('report_id')),
