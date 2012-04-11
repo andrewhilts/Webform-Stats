@@ -107,7 +107,24 @@ $items["admin/settings/webform_stats/type/$type_id/metrics"] = array(
 				'type' => MENU_LOCAL_TASK,
         );
     }
-  }
+  	$items['admin/settings/webform_stats/metric_delete/%'] = array(
+	    'title' => t('Delete Webform Stats Metric'),
+	    'page callback' => 'drupal_get_form',
+      'page arguments' => array('webform_stats_metric_delete_confirm_form',4),
+'access arguments' => array('access administration pages'),
+	    'type' => MENU_CALLBACK,
+	    'file' => 'webform_stats.admin.inc',
+	  );
+		$items['admin/settings/webform_stats/metric_edit/%'] = array(
+	    'title' => t('Edit Webform Stats Metric'),
+	    'page callback' => 'drupal_get_form',
+      'page arguments' => array('webform_stats_metric_edit_form',4),
+'access arguments' => array('access administration pages'),
+	    'type' => MENU_CALLBACK,
+	    'file' => 'webform_stats.admin.inc',
+	  );
+		
+	}
 }
 
 function webform_stats_get_types(){
@@ -158,3 +175,23 @@ function webform_stats_get_type_metrics($type){
   }
 	return $type_metrics;
 }
+
+function webform_stats_get_metric($metric_id){
+	$sql = "SELECT * FROM {webform_stats_report_type_metrics} WHERE metric_id = %d LIMIT 1";
+	$result = db_query($sql,$metric_id);
+	$metric = db_fetch_object($result);
+	return $metric;
+}
+
+/**
+ * Implements hook_theme().
+ */
+// function webform_stats_theme() {
+//   $theme = array(
+//       'webform_stats_metrics_table' => array(
+//       'arguments' => array('metrics' => NULL),
+// 			'file' => 'webform_stats.admin.inc',
+//     ),
+//   );
+//   return $theme;
+// }

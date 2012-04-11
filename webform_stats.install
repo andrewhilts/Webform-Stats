@@ -31,9 +31,11 @@ function webform_stats_schema(){
 		'fields' => array(
 			'metric_id' => array('type' => 'serial', 'not null' => TRUE,), 
 			'type_id' => array('type' => 'int', 'not null' => TRUE,),
+			'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
 			'component' => array('type' => 'varchar', 'length' => 50, 'not null' => TRUE),
 			'form_key' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
 			'form_key_fallback' => array('type' => 'int', 'not null' => TRUE),
+			'uniques' => array('type' => 'int', 'not null' => TRUE),
 			'query_function' => array('type' => 'varchar', 'length' => 50, 'not null' => TRUE),
 		),
 		'primary key' => array('metric_id'),

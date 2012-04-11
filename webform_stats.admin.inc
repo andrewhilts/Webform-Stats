@@ -19,8 +19,8 @@ function webform_stats_admin_type_delete($type_id){
 	return $output;
 }
 function webform_stats_admin_type_metrics($type_id){
-	dsm(webform_stats_get_type_metrics($type_id));
-	$output = drupal_get_form('webform_stats_types_edit_metrics_form',$type_id);
+	$output = webform_stats_metric_table(webform_stats_get_type_metrics($type_id));
+	$output .= drupal_get_form('webform_stats_types_metrics_form',$type_id);
 	return $output;
 }
 
@@ -238,17 +238,107 @@ function webform_stats_types_edit_nodes_form_submit($form, &$form_state){
 	db_query($sql . $sql2, $variables);
 }
 
-function webform_stats_types_edit_metrics_form (&$form_state, $type){
+function webform_stats_types_metrics_form (&$form_state, $type){
 	$form = array();
 	
 	$form['type'] = array('#value' => $type, '#type' => 'hidden');
 	
+	webform_stats_metrics_form_options($form);
+
+	$form['submit'] = array(
+	  '#type' => 'submit',
+		'#value' => t('Add metric'),
+	);
+	return $form;
+}
+
+function webform_stats_types_metrics_form_submit ($form,&$form_state) {
+	$metric = new Stdclass;
+	$metric->name = $form_state['values']['name'];
+	$metric->form_key = $form_state['values']['form_key'];
+	$metric->component = $form_state['values']['component'];
+	$metric->query_function = $form_state['values']['query_function'];
+	$metric->form_key_fallback = $form_state['values']['form_key_fallback'];
+	$metric->uniques = $form_state['values']['uniques'];
+	$metric->type_id = $form_state['values']['type'];
+	drupal_write_record('webform_stats_report_type_metrics',$metric);
+}
+
+function webform_stats_metric_edit_form(&$form_state, $metric_id)
+{
+  $form['metric_id'] = array(
+       '#type' => 'value',
+       '#value' => $metric_id
+   );
+	if(isset($_GET['destination'])){
+		$form['destination'] = array(
+       '#type' => 'value',
+       '#value' => $_GET['destination']
+   	);
+	}
+	
+	webform_stats_metrics_form_options($form, $metric_id);
+   
+	$form['submit'] = array(
+  	'#type' => 'submit',
+		'#value' => t('Edit metric'),
+	);
+		
+	return $form;
+}
+
+function webform_stats_metric_edit_form_submit($form,&$form_state){
+	$vars = array(
+		$form_state['values']['name'],
+		$form_state['values']['query_function'],
+		$form_state['values']['uniques'],
+		$form_state['values']['component'],
+		$form_state['values']['form_key'],
+		$form_state['values']['form_key_fallback'],
+		$form_state['values']['metric_id'],
+	);
+	
+	$sql = "UPDATE {webform_stats_report_type_metrics} SET name = '%s', query_function = '%s', uniques = %d, component = '%s', form_key = '%s', form_key_fallback = %d WHERE metric_id = %d LIMIT 1";
+	
+	db_query($sql,$vars);
+	
+	if(isset($form_state['values']['destination'])){
+    $form_state['redirect'] = $form_state['values']['destination'];
+	}
+	else{
+		$form_state['redirect'] = "admin/settings/webform_stats";
+	}
+}
+
+function webform_stats_metrics_form_options(&$form,$metric_id = FALSE){
+	
 	$component_types = webform_stats_get_component_types();
 	
-	$form['form_key'] = array(
+	$form['name'] = array(
 		'#type' => 'textfield',
-  	'#title' => t('Form key to match'),
+  	'#title' => t('Metric Name'),
 		'#size' => 30,
+		'#required' => TRUE,
+	);
+	$query_functions = array(
+		'SUM' => 'SUM',
+		'COUNT' => 'COUNT',
+		'AVG' => 'AVG',
+		'MAX' => 'MAX',
+		'MIN' => 'MIN',
+	);
+	$form['query_function'] = array (
+		'#type' => 'select',
+   	'#title' => t('Measurement Function'),
+		'#options' => $query_functions,
+		'#default_value' => 0,
+		'#required' => TRUE,
+	);
+	$form['uniques'] = array (
+		'#type' => 'radios',
+   	'#title' => t('Unique Values only?'),
+		'#options' => array(t('No'),t('Yes'),),
+		'#default_value' => 0,
 		'#required' => TRUE,
 	);
 	$form['component'] = array(
@@ -258,14 +348,10 @@ function webform_stats_types_edit_metrics_form (&$form_state, $type){
 		'#default_value' => 0,
 		'#required' => TRUE,
 	);
-	$query_functions = array(
-		'SUM','COUNT','AVG','MAX','MIN',
-	);
-	$form['query_function'] = array (
-		'#type' => 'select',
-   	'#title' => t('Measurement Function'),
-		'#options' => $query_functions,
-		'#default_value' => 0,
+	$form['form_key'] = array(
+		'#type' => 'textfield',
+  	'#title' => t('Form key to match'),
+		'#size' => 30,
 		'#required' => TRUE,
 	);
 	$form['form_key_fallback'] = array (
@@ -275,21 +361,57 @@ function webform_stats_types_edit_metrics_form (&$form_state, $type){
 		'#default_value' => 1,
 		'#required' => TRUE,
 	);
-	$form['submit'] = array(
-	  '#type' => 'submit',
-		'#value' => t('Add metric'),
-	);
-	return $form;
+	if($metric_id){
+		$metric = webform_stats_get_metric($metric_id);
+		$form['name']['#default_value'] = $metric->name;
+		$form['query_function']['#default_value'] = $metric->query_function;
+		$form['uniques']['#default_value'] = $metric->uniques;
+		$form['component']['#default_value'] = $metric->component;
+		$form['form_key']['#default_value'] = $metric->form_key;
+		$form['form_key_fallback']['#default_value'] = $metric->form_key_fallback;
+	}
 }
 
-function webform_stats_types_edit_metrics_form_submit ($form,&$form_state) {
-	$metric = new Stdclass;
-	$metric->form_key = $form_state['values']['form_key'];
-	$metric->component = $form_state['values']['component'];
-	$metric->query_function = $form_state['values']['query_function'];
-	$metric->form_key_fallback = $form_state['values']['form_key_fallback'];
-	$metric->type_id = $form_state['values']['type'];
-	drupal_write_record('webform_stats_report_type_metrics',$metric);
+/**
+ * Build the delete confirmation form.
+ *
+ * A simple wrapper around Drupal's core confirm_form() function. Adds a value
+ * field to store the ID of the record being deleted.
+ *
+ * @ingroup forms
+ * @see ipad_redirect_manager_delete_confirm_submit()
+ * @see confirm_form()
+ */
+function webform_stats_metric_delete_confirm_form(&$form_state, $metric_id)
+{
+    $form['metric_id'] = array(
+        '#type' => 'value',
+        '#value' => $metric_id
+    );
+		if(isset($_GET['destination'])){
+			$form['destination'] = array(
+        '#type' => 'value',
+        '#value' => $_GET['destination']
+    	);
+		}
+		$metric = webform_stats_get_metric($metric_id);
+    return confirm_form($form, t('Are you sure you want to delete metric:  '.$metric->name.'?', array(
+        '%title' => $metric_id
+    )), isset($_GET['destination']) ? $_GET['destination'] : 'admin/settings/webform_stats/', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+}
+
+function webform_stats_metric_delete_confirm_form_submit($form, &$form_state)
+{
+  if ($form_state['values']['confirm']) {
+ 	  webform_stats_metric_delete($form_state['values']['metric_id']);
+    drupal_set_message(t('Your metric was deleted.'));
+  }
+	if(isset($form_state['values']['destination'])){
+    $form_state['redirect'] = $form_state['values']['destination'];
+	}
+	else{
+		$form_state['redirect'] = "admin/settings/webform_stats";
+	}
 }
 
 function webform_stats_build_base_date($reporting_day){
@@ -335,4 +457,55 @@ function webform_stats_get_component_types(){
 	}
 	
 	return $types;
+}
+
+function webform_stats_metric_table($metrics){
+	$header = array(
+		t('Name'),
+		t('Measurement Function'),
+		t('Uniques?'),
+		t('Component'),
+		t('Form Key'),
+		t('Form Key Fallback'),
+		t('Operations'),
+	);
+	$rows = array();
+	$row_class = "webform_stats_metric";
+	
+	foreach($metrics as $i => $metric){
+		$row_data = array(
+			$metric->name,
+			$metric->query_function,
+			($metric->uniques) ? t('Yes') : t('No'),
+			$metric->component,
+			$metric->form_key,
+			($metric->form_key_fallback) ? t('Yes') : t('No'),
+			webform_stats_metric_links($metric->type_id,$metric->metric_id),
+		);
+		$rows[] = array('data' => $row_data, 'class' => $row_class);
+	}
+	return theme('table', $header, $rows, array('id' => 'webform_stats_metrics'));
+}
+
+function webform_stats_metric_links($type_id,$metric_id)
+{
+    $path            = drupal_get_path('module', 'webform_stats') . '/images/';
+    $links['edit']   = array(
+        'title' => theme('image', $path . 'text-editor.png', t('Edit')),
+        'href' => "admin/settings/webform_stats/metric_edit/$metric_id",
+        'html' => TRUE,
+        'query' => drupal_get_destination()
+    );
+    $links['delete'] = array(
+        'title' => theme('image', $path . 'edit-delete.png', t('Delete')),
+        'href' => "admin/settings/webform_stats/metric_delete/$metric_id",
+        'html' => TRUE,
+        'query' => drupal_get_destination()
+    );
+    return theme('links', $links);
+}
+
+function webform_stats_metric_delete($metric_id){
+	$sql = "DELETE FROM {webform_stats_report_type_metrics} WHERE metric_id = %d LIMIT 1";
+	db_query($sql,$metric_id);
 }
