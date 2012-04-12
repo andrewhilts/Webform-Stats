@@ -22,7 +22,14 @@ function webform_stats_type_queue_process($type_id){
 	$queue_name = "webform_stats_".$type_id."_nodeprep";
 	$queue = drupal_queue_get($queue_name); // grab queue
 	$count = $queue->numberOfItems();
-	if($count == 0){
+	
+	$build_queue = drupal_queue_get('webform_stats_metric_build');
+	$data_queue = drupal_queue_get('webform_stats_metric_data_get');
+	
+	$build_queue_count = $build_queue->numberOfItems();
+	$data_queue_count = $data_queue->numberOfItems();
+		
+	if($count == 0 && $build_queue_count == 0 && $data_queue_count == 0){
 		//build queue
 		webform_stats_type_queue_build($type_id,$queue_name);
 		dsm('queue created: '.$queue_name);
@@ -88,11 +95,11 @@ function webform_stats_type_get_latest_report($nid,$type_id){
 	
 	$result = db_query($sql,$nid,$type_id);
 		while($report = db_fetch_object($result)) {
-			if(!$report->report_period_end > 0){
-				return false;
+			if($report->report_period_end > 0){
+				return $report->report_period_end;
 			}
 			else{
-				return $report->report_period_end;
+				return false;
 			}
 		}
 	return false;	
@@ -149,8 +156,14 @@ function webform_stats_node_type_metric_data_check($node_info,$type,$metric){
 	}
 	else{
 		if($latest_report){
-			$date_range->max = $node_info->submissions->latest_submission;
-			watchdog('webform_stats', 'Node '.$node_info->nid.' still has submissions to collected, although unpublished.');
+			if($latest_report+1 > $node_info->submissions->latest_submission){
+				//Node should have been marked as complete. This shouldn't fire.
+				return false;
+			}
+			else{
+				$date_range->max = $node_info->submissions->latest_submission;
+				watchdog('webform_stats', 'Node '.$node_info->nid.' still has submissions to collected, although unpublished.');
+			}
 		}
 	}
 	if($date_range->max == $date_range->min){
@@ -161,8 +174,16 @@ function webform_stats_node_type_metric_data_check($node_info,$type,$metric){
 }
 
 function webform_stats_completeness_check($node_info,$type_id){
+	//Return false if node is still published
+	if($node_info->published == 1){
+		return FALSE;
+	}
 	//Check for node's latest report for type
 	$latest_report = webform_stats_type_get_latest_report($node_info->nid,$type_id);
+	if(!$latest_report){
+		return FALSE;
+	}
+	
 	if($latest_report+1 > $node_info->submissions->latest_submission){
 	//mark as complete
 		watchdog('webform_stats', 'Node '.$node_info->nid.' for type '.$type_id.' marked as complete. Last submission at time '.$node_info->submissions->latest_submission.' is less than latest report at time '.$latest_report);
@@ -178,6 +199,14 @@ function webform_stats_completeness_check($node_info,$type_id){
 
 function webform_stats_build_date_range($date_range,$interval){
 	watchdog('webform_stats','building date range from min: '.$date_range->min.' to max: '.$date_range->max);
+	
+	//Case when wrapping up webforms that have been unpublished
+	if($date_range->max-$date_range->min <= $interval){
+		$period = new Stdclass;
+		$period->min = intval($date_range->min);
+		$period->max = intval($date_range->min+$interval-1);
+		$dates = array($period);
+	}
 	$last_report_start_time = $date_range->max-$interval;
 	//Get date periods			
 	for ($i=$date_range->min; $i <= $last_report_start_time; $i = $i + $interval) { 
@@ -185,6 +214,9 @@ function webform_stats_build_date_range($date_range,$interval){
 		$period->min = intval($i);
 		$period->max = intval($i+$interval-1);
 		$dates[] = $period;
+	}
+	if(!isset($dates)){
+		return FALSE;
 	}
 	return $dates;
 }
@@ -194,9 +226,8 @@ function webform_stats_report_init($reporting_period,$nid,$type_id){
 	$sql = "SELECT COUNT(DISTINCT report_id) as init, report_id FROM {webform_stats_reports} WHERE report_period_start = %d AND report_period_end = %d AND type_id = %d AND nid = %d";
 
 	$result = db_query($sql,$reporting_period->min,$reporting_period->max,$type_id,$nid);
-	$report = db_fetch_object($result);
-	watchdog('webform_stats',intval($report->init));
-	if(intval($report->init) == 0){
+	$existing_report = db_fetch_object($result);
+	if(0 === intval($existing_report->init)){
 		
 		$report = new Stdclass;
 		$report->nid = $nid;
@@ -205,18 +236,34 @@ function webform_stats_report_init($reporting_period,$nid,$type_id){
 		$report->report_period_end = $reporting_period->max;
 		global $user;
 		$report->generated_by = $user->uid;
-		$result = drupal_write_record('webform_stats_repodrts',$report);
+		$report->report_date = time();
+		$result = drupal_write_record('webform_stats_reports',$report);
 		if($result){
 					watchdog('webform_stats',"created record");
-					webform_stats_report_init($reporting_period,$nid,$type_id);
+					return webform_stats_report_init($reporting_period,$nid,$type_id);
 				}
 				else{
 					return false;
 					watchdog('webform_stats','Could not create report');
 				}
 	}
-	else{
-		watchdog('webform_stats','Got report');
-		return $result->report_id;
+	elseif($existing_report->report_id){
+		watchdog('webform_stats','Got report: '.$existing_report->report_id);
+		return $existing_report->report_id;
 	}
+	else{
+		return false;
+		watchdog('webform_stats','Could not create report');
+	}
+}
+
+function webform_stats_get_cid($nid,$metric){
+	$sql = "SELECT DISTINCT cid FROM {webform_component} WHERE nid=%d AND form_key = '%s' LIMIT 1";
+	$result = db_query($sql,$nid,$metric->form_key);
+	$component = db_fetch_object($result);
+	if(!$component->cid){
+		watchdog('webform_stats',"no cid found");
+		return FALSE;
+	}
+	return $component->cid;
 }

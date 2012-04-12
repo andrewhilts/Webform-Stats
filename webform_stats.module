@@ -155,9 +155,13 @@ function webform_stats_cron_queue_info() {
   	);
 	}
 	$queue["webform_stats_metric_build"] = array(
-    	'worker callback' => '_webform_stats_queue_metric_build_worker',
-			'time' => 20,
+    'worker callback' => '_webform_stats_queue_metric_build_worker',
+		'time' => 20,
   );
+	$queue["webform_stats_metric_data_get"] = array(
+		'worker callback' => '_webform_stats_queue_metric_data_get_worker',
+		'time' => 20,
+	);
   return $queue;
 }
 
@@ -175,12 +179,20 @@ function _webform_stats_queue_node_prep_worker($item){
 		if($completed){
 			return "completed";
 		}
+		
 		$metrics = webform_stats_get_type_metrics($item['type_id']);
+		
+		//Get webform cids for each metric
+		$item['cids'] = array();
+		
+		foreach($metrics as $i => $metric){
+			$item['cids'][$metric->metric_id] = webform_stats_get_cid($item['node_info']->nid,$metric);
+		}
 		
 		//Get metric report building queue
 		$queue = drupal_queue_get("webform_stats_metric_build");
 		$queue->createQueue(); // initialize
-		
+		watchdog('webform_stats','Node '.$item['node_info']->nid.' Metrics: '.count($metrics));
 		foreach($metrics as $i => $metric){
 			//Add metric to item
 			$item['metric'] = $metric;
@@ -214,7 +226,7 @@ function _webform_stats_queue_metric_build_worker($item){
 
 		//Check if report exists for this node/type at for current reporting period. If it does, get report ID; if not, create one and get ID.
 		$report_id = webform_stats_report_init($reporting_period,$item['node_info']->nid,$type->type_id);
-		watchdog('webform_stats',$report_id);
+		watchdog('webform_stats','Working with report '.$report_id."(t".$type->type_id."/n".$item['node_info']->nid."/m".$item['metric']->metric_id.")");
 		//Create worker
 		$items[] = array(
 			'report_id' => $report_id,
@@ -222,14 +234,39 @@ function _webform_stats_queue_metric_build_worker($item){
 			'type_id' => $type->type_id,
 			'reporting_period' => $reporting_period,
 			'metric' => $item['metric'],
+			'cids' => $item['cids'],
 		);
 	}
 	
 	$queue = drupal_queue_get('webform_stats_metric_data_get');
 	$queue->createQueue(); // initialize
+	watchdog('webform_stats','date_range:'.count($items));
 	foreach ($items as $item) {
 		$queue->createItem($item); // each item passed as param to worker
 	}
+}
+
+function _webform_stats_queue_metric_data_get_worker($item){
+	module_load_include('inc', 'webform_stats', 'webform_stats_queries');
+	
+	//Query the webform_submitted_data for report metric info. Different queries for different metrics
+	switch($item['metric']->component){
+		case "email":
+			$data = _webform_stats_email_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
+			break;
+		case "select":
+			$data = _webform_stats_select_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
+			break;
+		case "mailchimp":
+			$data = _webform_stats_mailchimp_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
+			break;
+	}
+	
+	$report_data = new Stdclass;
+	$report_data->report_id = $item['report_id'];
+	$report_data->metric_id = $item['metric']->metric_id;
+	$report_data->data = $data;
+	drupal_write_record('webform_stats_report_data',$report_data);
 }
 
 function webform_stats_get_types(){
