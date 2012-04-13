@@ -1,6 +1,6 @@
 <?php
 
-function webform_stats_render_query($type_id,$node = FALSE,$date_range = FALSE, $aggregate = FALSE){
+function webform_stats_render_query_builder($type_id,$node = FALSE,$date_range = FALSE, $aggregate = FALSE){
 	$metrics = webform_stats_get_type_metrics($type_id);
 	//Loop through the stat grouping type's metrics
 	foreach($metrics as $i => $metric){
@@ -85,4 +85,10 @@ function webform_stats_render_query($type_id,$node = FALSE,$date_range = FALSE, 
 		$node_criteria . 
 		$date_criteria .
 		$group_criteria;
+	
+	//Return array of sql and vars for use in other functions.	
+	return array(
+		"query" => $sql,
+		"vars" => $vars,
+	);
 }
