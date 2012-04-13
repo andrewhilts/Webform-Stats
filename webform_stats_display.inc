@@ -36,7 +36,7 @@ function webform_stats_render_query($type_id,$node = FALSE,$date_range = FALSE, 
 		if(is_array($date_range)){
 			$date_criteria = 
 				" AND wsr.report_period_start >= %d".
-				"  AND wsr.report_period_end <= %d";
+				" AND wsr.report_period_end <= %d";
 			$vars[] = $date_range['min'];
 			$vars[] = $date_range['max'];
 		}
