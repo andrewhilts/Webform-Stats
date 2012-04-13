@@ -73,7 +73,7 @@ function webform_stats_render_query($type_id,$node = FALSE,$date_range = FALSE, 
 		$group_criteria = "";	
 	}
 	
-	$date_fields = ($aggregate) ? "wsr.report_period_start, wsr.report_period_end," : "MIN(wsr.report_period_start), MAX(wsr.report_period_end),";
+	$date_fields = ($aggregate) ? "MIN(wsr.report_period_start), MAX(wsr.report_period_end)," : "wsr.report_period_start, wsr.report_period_end,";
 
 	$sql = 
 		"SELECT wsr.nid, " .
