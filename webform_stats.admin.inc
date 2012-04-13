@@ -35,11 +35,22 @@ function webform_stats_settings_form(){
 	$form['webform_stats_debug'] = array(
 		'#type' => 'checkbox',
    	'#title' => t('Debug mode?'),
-		'#description' => t('Write detailed logs to watchdog table'),
+		'#description' => t('Write detailed logs to watchdog table.'),
 		'#return_value' => TRUE, 
 		'#default_value' => variable_get('webform_stats_debug',FALSE),
 		'#required' => TRUE,
 	);
+	
+	if(module_exists('data')){
+		$form['webform_stats_data'] = array(
+			'#type' => 'checkbox',
+   		'#title' => t('Make stats available to Data module?'),
+			'#description' => t('This will allow for stats to be used in Views.'),
+			'#return_value' => TRUE, 
+			'#default_value' => variable_get('webform_stats_data',FALSE),
+			'#required' => TRUE,
+		);
+	}
 	
 	return system_settings_form($form);
 }

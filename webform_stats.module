@@ -323,10 +323,10 @@ function webform_stats_get_type_webforms($type,$depth = 'min'){
 	return $type_webforms;
 }
 
-function webform_stats_get_type_metrics($type){
+function webform_stats_get_type_metrics($type_id){
 	$type_metrics = array();
 	$sql = "SELECT * FROM {webform_stats_report_type_metrics} WHERE type_id = %d";
-	$result = db_query($sql,$type);
+	$result = db_query($sql,$type_id);
 	while ($metric = db_fetch_object($result)) {
     $type_metrics[] = $metric;
   }
