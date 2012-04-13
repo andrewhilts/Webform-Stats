@@ -4,7 +4,7 @@ function _webform_stats_email_report($nid,$reporting_period,$metric,$cids,$type_
 	$cid_email = 9;
 	
 	if(!$metric->uniques){
-		watchdog('webform_stats',"email report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
+		webform_stats_debug('webform_stats',"email report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
 		$sql = 
 		"SELECT COUNT(wsd.data) FROM 
 				{webform_submitted_data} wsd
@@ -24,7 +24,7 @@ function _webform_stats_email_report($nid,$reporting_period,$metric,$cids,$type_
 		);
 	}
 	else{
-		watchdog('webform_stats',"Unique email report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
+		webform_stats_debug('webform_stats',"Unique email report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
 		//Get previous unique entries only
 		$sql_previous_u_email = 
 		"CREATE TEMPORARY TABLE 
@@ -81,7 +81,7 @@ function _webform_stats_select_report($nid,$reporting_period,$metric,$cids,$type
 	$cid_email = 9;
 	
 	if(!$metric->uniques){
-		watchdog('webform_stats',"select report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
+		webform_stats_debug('webform_stats',"select report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
 		$sql = 
 		"SELECT SUM(wsd.data) FROM 
 				{webform_submitted_data} wsd
@@ -101,7 +101,7 @@ function _webform_stats_select_report($nid,$reporting_period,$metric,$cids,$type
 		);
 	}
 	else{
-		watchdog('webform_stats',"Unique select report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
+		webform_stats_debug('webform_stats',"Unique select report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
 		//Get previous unique selects only
 		$sql_previous_u_select = 
 		"CREATE TEMPORARY TABLE 
@@ -165,7 +165,7 @@ function _webform_stats_mailchimp_report($nid,$reporting_period,$metric,$cids,$t
 	
 	
 	if(!$metric->uniques){
-		watchdog('webform_stats',"mailchimp report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
+		webform_stats_debug('webform_stats',"mailchimp report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
 		$sql = 
 		"SELECT COUNT(wsd.data) FROM 
 				{webform_submitted_data} wsd
@@ -186,7 +186,7 @@ function _webform_stats_mailchimp_report($nid,$reporting_period,$metric,$cids,$t
 		);
 	}
 	else{
-		watchdog('webform_stats',"Unique mailchimp report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
+		webform_stats_debug('webform_stats',"Unique mailchimp report for node ".$nid." and r".$report_id." with min date: ".$reporting_period->min." and cid:".$cids[$metric->metric_id]);
 		//Get previous unique mailchimps only
 		$sql_previous_u_mailchimp = 
 		"CREATE TEMPORARY TABLE 

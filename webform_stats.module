@@ -14,14 +14,24 @@ function webform_stats_menu(){
 	    'type' => MENU_NORMAL_ITEM,
 	   );
 	
-		$items['admin/settings/webform_stats/type/add'] = array(
-	    'title' => t('Add Grouping'),
-	    'description' => t('Add a new statistical grouping'),
+		$items['admin/settings/webform_stats/settings'] = array(
+	    'title' => t('Module Settings'),
+	    'description' => t('Configure General Settings'),
 	    'page callback' => 'webform_stats_admin',
 	    'access arguments' => array('access administration pages'),
 			'file' => 'webform_stats.admin.inc',
 	    'type' => MENU_DEFAULT_LOCAL_TASK,
 			'weight' => -50,
+	   );
+	
+		$items['admin/settings/webform_stats/type/add'] = array(
+	    'title' => t('Add Grouping'),
+	    'description' => t('Add a new statistical grouping'),
+	    'page callback' => 'webform_stats_admin_type_add',
+	    'access arguments' => array('access administration pages'),
+			'file' => 'webform_stats.admin.inc',
+	    'type' => MENU_LOCAL_TASK,
+			'weight' => -40,
 	   );
 	
 	webform_stats_build_report_type_menu_options($items);
@@ -166,7 +176,7 @@ function webform_stats_cron_queue_info() {
 }
 
 function _webform_stats_queue_node_prep_worker($item){
-	watchdog('webform_stats',"Prepping item ".$item['node_info']->nid);
+	webform_stats_debug('webform_stats',"Prepping item ".$item['node_info']->nid);
 	module_load_include('inc', 'webform_stats', 'webform_stats_process');
 	
 	//Check for submissions
@@ -192,7 +202,7 @@ function _webform_stats_queue_node_prep_worker($item){
 		//Get metric report building queue
 		$queue = drupal_queue_get("webform_stats_metric_build");
 		$queue->createQueue(); // initialize
-		watchdog('webform_stats','Node '.$item['node_info']->nid.' Metrics: '.count($metrics));
+		webform_stats_debug('webform_stats','Node '.$item['node_info']->nid.' Metrics: '.count($metrics));
 		foreach($metrics as $i => $metric){
 			//Add metric to item
 			$item['metric'] = $metric;
@@ -226,7 +236,7 @@ function _webform_stats_queue_metric_build_worker($item){
 
 		//Check if report exists for this node/type at for current reporting period. If it does, get report ID; if not, create one and get ID.
 		$report_id = webform_stats_report_init($reporting_period,$item['node_info']->nid,$type->type_id);
-		watchdog('webform_stats','Working with report '.$report_id."(t".$type->type_id."/n".$item['node_info']->nid."/m".$item['metric']->metric_id.")");
+		webform_stats_debug('webform_stats','Working with report '.$report_id."(t".$type->type_id."/n".$item['node_info']->nid."/m".$item['metric']->metric_id.")");
 		//Create worker
 		$items[] = array(
 			'report_id' => $report_id,
@@ -240,7 +250,7 @@ function _webform_stats_queue_metric_build_worker($item){
 	
 	$queue = drupal_queue_get('webform_stats_metric_data_get');
 	$queue->createQueue(); // initialize
-	watchdog('webform_stats','date_range:'.count($items));
+	webform_stats_debug('webform_stats','date_range:'.count($items));
 	foreach ($items as $item) {
 		$queue->createItem($item); // each item passed as param to worker
 	}
@@ -328,6 +338,12 @@ function webform_stats_get_metric($metric_id){
 	$result = db_query($sql,$metric_id);
 	$metric = db_fetch_object($result);
 	return $metric;
+}
+
+function webform_stats_debug($type,$message,$severity = WATCHDOG_NOTICE, $link = NULL){
+	if(variable_get('webform_stats_debug',false)){
+		watchdog($type,$message,$severity,$link);
+	}
 }
 
 /**

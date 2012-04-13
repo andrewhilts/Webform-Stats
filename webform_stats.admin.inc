@@ -2,7 +2,12 @@
 
 function webform_stats_admin(){
 	$output = "hello world";
-	$output .= drupal_get_form('webform_stats_types_add_form');
+	$output .= drupal_get_form('webform_stats_settings_form');
+	return $output;
+}
+
+function webform_stats_admin_type_add(){
+	$output = drupal_get_form('webform_stats_types_add_form');
 	return $output;
 }
 
@@ -23,6 +28,20 @@ function webform_stats_admin_type_metrics($type_id){
 	$output .= "<h2>Add new Metric</h2>";
 	$output .= drupal_get_form('webform_stats_types_metrics_form',$type_id);
 	return $output;
+}
+
+function webform_stats_settings_form(){
+	
+	$form['webform_stats_debug'] = array(
+		'#type' => 'checkbox',
+   	'#title' => t('Debug mode?'),
+		'#description' => t('Write detailed logs to watchdog table'),
+		'#return_value' => 1, 
+		'#default_value' => variable_get('webform_stats_debug',0),
+		'#required' => TRUE,
+	);
+	
+	return system_settings_form($form);
 }
 
 function webform_stats_type_form_options(&$form, $type_id = false){

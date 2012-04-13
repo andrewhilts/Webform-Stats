@@ -137,22 +137,22 @@ function webform_stats_base_date_factor($date,$base_date,$interval){
 //Check latest data for node-type-metric; is it out of date?
 function webform_stats_node_type_metric_data_check($node_info,$type,$metric){
 	$data_id = 't'.$type->type_id."/n".$node_info->nid."/m".$metric->metric_id;
-	watchdog('webform_stats','Data check for: '.$data_id);
+	webform_stats_debug('webform_stats','Data check for: '.$data_id);
 	//Check for latest report
 	$latest_report = webform_stats_type_metric_get_latest_report($node_info->nid,$type->type_id,$metric->metric_id);
 	if($latest_report){
 		$date_range->min = $latest_report+1;
 		$date_range->max = $node_info->submissions->latest_submission;
-		watchdog('webform_stats', 'latest report found for '.$node_info->nid.' at time: '.$latest_report);
+		webform_stats_debug('webform_stats', 'latest report found for '.$node_info->nid.' at time: '.$latest_report);
 	}
 	else{
 		$date_range->min = webform_stats_base_date_factor($node_info->submissions->earliest_submission,$type->base_date,$type->report_interval);
 		$date_range->max = $node_info->submissions->latest_submission;
-		watchdog('webform_stats', 'NO latest report found ('.$data_id.')');
+		webform_stats_debug('webform_stats', 'NO latest report found ('.$data_id.')');
 	}
 	if($node_info->published == 1){
 		$date_range->max = webform_stats_base_date_factor(time(),$type->base_date,$type->report_interval);
-		watchdog('webform_stats', 'Node '.$node_info->nid.' is published, hence use current time as max time: '.$date_range->max.' ('.$data_id.')');
+		webform_stats_debug('webform_stats', 'Node '.$node_info->nid.' is published, hence use current time as max time: '.$date_range->max.' ('.$data_id.')');
 	}
 	else{
 		if($latest_report){
@@ -162,12 +162,12 @@ function webform_stats_node_type_metric_data_check($node_info,$type,$metric){
 			}
 			else{
 				$date_range->max = $node_info->submissions->latest_submission;
-				watchdog('webform_stats', 'Node '.$node_info->nid.' still has submissions to collected, although unpublished.');
+				webform_stats_debug('webform_stats', 'Node '.$node_info->nid.' still has submissions to collected, although unpublished.');
 			}
 		}
 	}
 	if($date_range->max == $date_range->min){
-		watchdog('webform_stats', 'Not enough time has passed to warrant a new report for node '.$node_info->nid.'.');
+		webform_stats_debug('webform_stats', 'Not enough time has passed to warrant a new report for node '.$node_info->nid.'.');
 		return false;
 	}
 	return $date_range;
@@ -186,7 +186,7 @@ function webform_stats_completeness_check($node_info,$type_id){
 	
 	if($latest_report+1 > $node_info->submissions->latest_submission){
 	//mark as complete
-		watchdog('webform_stats', 'Node '.$node_info->nid.' for type '.$type_id.' marked as complete. Last submission at time '.$node_info->submissions->latest_submission.' is less than latest report at time '.$latest_report);
+		webform_stats_debug('webform_stats', 'Node '.$node_info->nid.' for type '.$type_id.' marked as complete. Last submission at time '.$node_info->submissions->latest_submission.' is less than latest report at time '.$latest_report);
 		
 		$sql = "UPDATE {webform_stats_nodes} SET complete = 1 WHERE nid = %d AND type_id = %d LIMIT 1";
 		db_query($sql,$node_info->nid,$type_id);
@@ -198,7 +198,7 @@ function webform_stats_completeness_check($node_info,$type_id){
 }
 
 function webform_stats_build_date_range($date_range,$interval){
-	watchdog('webform_stats','building date range from min: '.$date_range->min.' to max: '.$date_range->max);
+	webform_stats_debug('webform_stats','building date range from min: '.$date_range->min.' to max: '.$date_range->max);
 	
 	//Case when wrapping up webforms that have been unpublished
 	if($date_range->max-$date_range->min <= $interval){
@@ -239,21 +239,21 @@ function webform_stats_report_init($reporting_period,$nid,$type_id){
 		$report->report_date = time();
 		$result = drupal_write_record('webform_stats_reports',$report);
 		if($result){
-					watchdog('webform_stats',"created record");
+					webform_stats_debug('webform_stats',"created record");
 					return webform_stats_report_init($reporting_period,$nid,$type_id);
 				}
 				else{
 					return false;
-					watchdog('webform_stats','Could not create report');
+					webform_stats_debug('webform_stats','Could not create report');
 				}
 	}
 	elseif($existing_report->report_id){
-		watchdog('webform_stats','Got report: '.$existing_report->report_id);
+		webform_stats_debug('webform_stats','Got report: '.$existing_report->report_id);
 		return $existing_report->report_id;
 	}
 	else{
 		return false;
-		watchdog('webform_stats','Could not create report');
+		webform_stats_debug('webform_stats','Could not create report');
 	}
 }
 
@@ -262,7 +262,7 @@ function webform_stats_get_cid($nid,$metric){
 	$result = db_query($sql,$nid,$metric->form_key);
 	$component = db_fetch_object($result);
 	if(!$component->cid){
-		watchdog('webform_stats',"no cid found");
+		webform_stats_debug('webform_stats',"no cid found");
 		return FALSE;
 	}
 	return $component->cid;
