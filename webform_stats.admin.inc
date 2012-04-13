@@ -36,8 +36,8 @@ function webform_stats_settings_form(){
 		'#type' => 'checkbox',
    	'#title' => t('Debug mode?'),
 		'#description' => t('Write detailed logs to watchdog table'),
-		'#return_value' => 1, 
-		'#default_value' => variable_get('webform_stats_debug',0),
+		'#return_value' => TRUE, 
+		'#default_value' => variable_get('webform_stats_debug',FALSE),
 		'#required' => TRUE,
 	);
 	

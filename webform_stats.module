@@ -340,9 +340,9 @@ function webform_stats_get_metric($metric_id){
 	return $metric;
 }
 
-function webform_stats_debug($type,$message,$severity = WATCHDOG_NOTICE, $link = NULL){
-	if(variable_get('webform_stats_debug',false)){
-		watchdog($type,$message,$severity,$link);
+function webform_stats_debug($type,$message){
+	if(variable_get('webform_stats_debug',FALSE)){
+		watchdog($type,$message);
 	}
 }
 
