@@ -25,9 +25,15 @@ function webform_stats_render_query($type_id,$node = FALSE,$date_range = FALSE, 
 		//Limit the query to a list of nodes
 		if(is_array($node)){
 			foreach($node as $i => $nid){
-			  $node_criteria .= " AND wsr.nid=%d";
+				if($i === 0){
+			  	$node_criteria .= " AND (wsr.nid=%d\n";
+			  }
+			  else{
+			  	$node_criteria .= " OR wsr.nid=%d";
+		    }
 				$vars[] = $nid;
 			}
+			$node_criteria .= ")";
 		}
 		elseif(is_numeric($node)){
 			//Limit query to a single node only
