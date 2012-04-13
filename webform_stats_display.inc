@@ -72,12 +72,12 @@ function webform_stats_render_query_builder($type_id,$node = FALSE,$date_range =
 	else{
 		$group_criteria = "";	
 	}
-	//Add MAX/MIN Aggregate function to the report_period fields if aggregation is active
-	$date_fields = ($aggregate) ? "MIN(wsr.report_period_start), MAX(wsr.report_period_end), " : "wsr.report_period_start, wsr.report_period_end, ";
+	//Add COUNT and MAX/MIN Aggregate function to the report_period fields if aggregation is active
+	$wsr_fields = ($aggregate) ? "COUNT(wsr.report_period_start) reports, MIN(wsr.report_period_start), MAX(wsr.report_period_end), " : "wsr.report_period_start, wsr.report_period_end, ";
 
 	$sql = 
 		"SELECT wsr.nid, " .
-		$date_fields .
+		$wsr_fields .
 		implode(', ',$fields) .
 		" FROM {webform_stats_reports wsr} " .
 		implode(" ",$joins) .
