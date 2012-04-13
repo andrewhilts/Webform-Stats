@@ -16,7 +16,7 @@ function webform_stats_render_query($type_id,$node = FALSE,$date_range = FALSE, 
 	if($node){
 		if(is_array($node)){
 			foreach($node as $i => $nid){
-			    $node_criteria .= " AND wsr.nid=%d";
+			  $node_criteria .= " AND wsr.nid=%d";
 				$vars[] = $nid;
 			}
 		}
