@@ -10,15 +10,17 @@ function webform_stats_display_index(){
 function webform_stats_display_type($type_id){
 	//$date_range = array('min' => time()-2592000, 'max' => time());
 	
-	if(isset($_GET['grouping']) && isset($_GET['start_date']) && isset($_GET['end_date'])){
+	if(isset($_GET['grouping']) && isset($_GET['start_date']) && isset($_GET['end_date']) && isset($_GET['d']) ){
 		$params['grouping'] = $_GET['grouping'];
 		$params['start_date'] = $_GET['start_date'];
 		$params['end_date'] = $_GET['end_date'];
+		$params['d'] = $_GET['d'];
 	}
 	else{
 		$params['grouping'] = 'nid';
-		$params['start_date'] = time()-2419200;
+		$params['start_date'] = time()-9676800;
 		$params['end_date'] = time();
+		$params['d'] = '4m';
 	}
 	
 	$date_range = array(
@@ -199,6 +201,28 @@ function webform_stats_date_form(&$form,$type_id,$nid = FALSE,$params){
  	$startdate = date('Y-m-d',$params['start_date']);
 	$enddate = date('Y-m-d',$params['end_date']);
 
+	//Get type
+	$type = webform_stats_get_type_details($type_id);
+
+	//Preset time ranges
+	$time_periods = array(
+		"1w" => "Last Reporting Period",
+		"4w" => "Last Month",
+		"4m" => "Last 16 Weeks",
+		"ytd" => "Year-To-Date",
+	);
+	
+	//Get all years of data
+	//
+	$min_year = date('Y',$type->base_date);
+	$max_year = date('Y',time());
+	
+	//Add earlier years to form
+	for($i = $max_year-1; $i >= $min_year; $i--){
+		$time_periods[$i] = $i;
+	}
+	$time_periods["all"] = "Everything";
+	$time_periods["custom"] = "Custom";
 
   $format = 'Y-m-d';
 
@@ -208,8 +232,28 @@ function webform_stats_date_form(&$form,$type_id,$nid = FALSE,$params){
 		'#collapsible' => TRUE,
 		'#collapsed' => TRUE,
 	);
-
-  $form['report_options']['start'] = array(
+	
+	$form['report_options']['start_radio'] = array(
+     '#type' => 'select',
+     '#title' => 'Start Date',
+		 '#options' => $time_periods,
+     '#default_value' => $params['d'], 
+  );
+	if($params['d'] == "c"){
+		$form['report_options']['start_radio']["#default_value"] = "custom";
+	}
+	
+	$form['report_options']['custom_range'] = array(
+		'#type' => 'fieldset',
+		'#title' => 'Custom Date Range',
+		'#collapsible' => TRUE,
+		'#collapsed' => TRUE,
+	);
+	if($params['d'] == "c"){
+		$form['report_options']['custom_range']["#collapsed"] = FALSE;
+	}
+	
+  $form['report_options']['custom_range']['start'] = array(
      '#type' => 'date_popup',
      '#title' => 'Start Date',
      '#default_value' => $startdate, 
@@ -217,7 +261,7 @@ function webform_stats_date_form(&$form,$type_id,$nid = FALSE,$params){
      '#date_label_position' => 'within'
   );
 
-	$form['report_options']['end'] = array(
+	$form['report_options']['custom_range']['end'] = array(
 	    '#type' => 'date_popup',
      '#title' => 'End Date',
      '#default_value' => $enddate, 
@@ -241,6 +285,10 @@ function webform_stats_date_form(&$form,$type_id,$nid = FALSE,$params){
 		'#type' => 'submit',
 		'#value' => t('Adjust data display'),
 	);
+	$form['type_id'] = array(
+		'#type' => 'hidden',
+		'#default_value' => $type_id,
+	);
 	$form['path'] = array(
 		'#type' => 'hidden',
 		'#default_value' => "webform_stats/$type_id",
@@ -252,11 +300,54 @@ function webform_stats_date_form(&$form,$type_id,$nid = FALSE,$params){
 }
 function webform_stats_date_form_submit($form, &$form_state){
 	
+	$type = webform_stats_get_type_details(intval($form_state['values']['type_id']));
+
+	if($form_state['values']['start_radio'] !== "custom"){
+		$d = $form_state['values']['start_radio'];
+		$the_time = time();
+		$latest_report = webform_stats_base_date_factor($the_time,$type->base_date,$type->report_interval);
+	switch($form_state['values']['start_radio']){
+		case "1w":
+			$start_time = $the_time-$type->report_interval;
+			$start_date = webform_stats_base_date_factor($start_time,$type->base_date,$type->report_interval);
+			$end_date = $latest_report;
+			break;
+		case "4w":
+			$start_time = $the_time-2419200;
+			$start_date = webform_stats_base_date_factor($start_time,$type->base_date,$type->report_interval);
+			$end_date = $latest_report;
+			break;
+		case "4m":
+			$start_time = $the_time-9676800;
+			$start_date = webform_stats_base_date_factor($start_time,$type->base_date,$type->report_interval);
+			$end_date = $latest_report;
+			break;
+		case "ytd":
+			$start_date = strtotime(date('Y',time()).'-01-01');
+			$end_date = $latest_report;
+			break;
+		case "all":
+			$start_date = $type->base_date;
+			$end_date = $latest_report;
+			break;
+		default:
+			$start_date = strtotime($form_state['values']['start_radio']."-01-01");
+			$year_after = intval($form_state['values']['start_radio'])+1;
+			$end_date = strtotime($year_after."-01-01")-1;
+			break;
+	}
+}
+	else{
+		$start_date = strtotime($form_state['values']['start']);
+		$end_date = strtotime($form_state['values']['end']);
+		$d = 'c';
+	}
 	$query = array(
 		'grouping' => $form_state['values']['grouping'],
-		'start_date' => strtotime($form_state['values']['start']),
-		'end_date' => strtotime($form_state['values']['end']),
+		'start_date' => $start_date,
+		'end_date' => $end_date,
+		'd' => $d,
 	);
-		
+
 	$form_state['redirect'] = array($form_state['values']['path'],$query);
 }

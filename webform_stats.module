@@ -361,6 +361,11 @@ function webform_stats_get_metric($metric_id){
 	return $metric;
 }
 
+function webform_stats_base_date_factor($date,$base_date,$interval){
+	$diff = $date - $base_date;
+	return (floor($diff/$interval)*$interval)+$base_date;
+}
+
 function webform_stats_debug($type,$message){
 	if(variable_get('webform_stats_debug',FALSE)){
 		watchdog($type,$message);

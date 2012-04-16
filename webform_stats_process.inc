@@ -129,11 +129,6 @@ function webform_stats_type_metric_get_latest_report($nid,$type_id,$metric_id){
 	return false;
 }
 
-function webform_stats_base_date_factor($date,$base_date,$interval){
-	$diff = $date - $base_date;
-	return (floor($diff/$interval)*$interval)+$base_date;
-}
-
 //Check latest data for node-type-metric; is it out of date?
 function webform_stats_node_type_metric_data_check($node_info,$type,$metric){
 	$data_id = 't'.$type->type_id."/n".$node_info->nid."/m".$metric->metric_id;
