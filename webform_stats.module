@@ -52,13 +52,14 @@ function webform_stats_menu(){
 	// 	'file' => 'webform_stats_generator.admin.inc',
 	//     'type' => MENU_NORMAL_ITEM,
 	//    );
-	// $items['webform_stats'] = array(
-	//     'title' => t('Webform Report Generator'),
-	//     'description' => t('Configure how Webform Reports are generated'),
-	//     'page callback' => 'webform_stats_generator_display',
-	//     'access arguments' => array('access administration pages'),
-	//     'type' => MENU_NORMAL_ITEM,
-	//    );
+	$items['webform_stats'] = array(
+	    'title' => t('Webform Stats Reports'),
+	    'description' => t('Overview of all report groupings'),
+	    'page callback' => 'webform_stats_display_index',
+	    'access arguments' => array('access administration pages'),
+			'file' => 'webform_stats_display.inc',
+	    'type' => MENU_NORMAL_ITEM,
+	   );
 	// $items['webform_stats/%'] = array(
 	//     'title' => t('Webform Report Generator'),
 	//     'description' => t('Configure how Webform Reports are generated'),
@@ -114,6 +115,26 @@ $items["admin/settings/webform_stats/type/$type_id/metrics"] = array(
   			'access arguments' => array('access administration pages'),
         'file' => 'webform_stats.admin.inc',
 				'weight' => 3,
+				'type' => MENU_LOCAL_TASK,
+        );
+$items["webform_stats/$type_id"] = array(
+  	    'title' => $value->name,
+  	    'description' => 'View stats for this grouping',
+  			'page callback' => 'webform_stats_display_type',
+        'page arguments' => array(1),
+  			'access arguments' => array('access administration pages'),
+        'file' => 'webform_stats_display.inc',
+				'weight' => $i,
+				'type' => MENU_LOCAL_TASK,
+        );
+$items["webform_stats/$type_id/%"] = array(
+  	    'title' => $value->name,
+  	    'description' => 'View stats for this node',
+  			'page callback' => 'webform_stats_display_node_overview',
+        'page arguments' => array(1,2),
+  			'access arguments' => array('access administration pages'),
+        'file' => 'webform_stats_display.inc',
+				'weight' => $i,
 				'type' => MENU_LOCAL_TASK,
         );
     }
