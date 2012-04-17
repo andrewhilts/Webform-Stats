@@ -127,6 +127,14 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 	
 	$rows = array();
 	
+	$summary_row = array();
+	if(!$nid && ($aggregate !== "report_period_start")){
+		$summary_row['nid'] = "";
+		$summary_row['title'] = "TOTALS:";
+	}
+	$summary_row['startdate'] = "";
+	$summary_row['enddate'] = "";
+	
 	while ($node = db_fetch_object($result)){
 		$row_data = array();
 		if(!$nid && ($aggregate !== "report_period_start")){
@@ -138,12 +146,19 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 		foreach($metrics as $i => $metric){
 			$data_field = "m".$metric->metric_id."_data";
 			$row_data[] = number_format($node->$data_field);
+			$summary_row[$metric->metric_id] = $node->$data_field+$summary_row[$metric->metric_id];
 		}
 		$rows[] = $row_data;
 		$query_data[] = $node;
 	}
+	foreach($summary_row as $i => $field){
+		if(is_numeric($field)){
+			$summary_row[$i] = number_format($field);
+		}
+	}
+	$rows[] = $summary_row;
 	$output = theme('table', $header, $rows);
-	$output .= theme('pager', NULL, 30, 0);
+	$output .= theme('pager', NULL, 50, 0);
 	
 	//Allow other modules to utilize this data
 
