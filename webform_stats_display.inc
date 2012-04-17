@@ -29,12 +29,49 @@ function webform_stats_display_type($type_id){
 	);
 	
 	$output = drupal_get_form('webform_stats_date_form',$type_id,FALSE,$params);
-	$output .= webform_stats_report_overview($type_id,FALSE,$date_range,$params['grouping']);
+	$output_data =  webform_stats_report_overview($type_id,FALSE,$date_range,$params['grouping']);
+	
+	if(!empty($output_data['extra'])){
+		foreach($output_data['extra'] as $i => $extra){
+			$output .= $extra;
+		}
+	}
+	
+	$output .= $output_data['default'];
 	return $output;
 }
 
 function webform_stats_display_node_overview($type_id,$nid){
-	return webform_stats_report_overview($type_id,$nid,FALSE,FALSE);
+	// if(isset($_GET['grouping']) && isset($_GET['start_date']) && isset($_GET['end_date']) && isset($_GET['d']) ){
+	// 	$params['grouping'] = $_GET['grouping'];
+	// 	$params['start_date'] = $_GET['start_date'];
+	// 	$params['end_date'] = $_GET['end_date'];
+	// 	$params['d'] = $_GET['d'];
+	// }
+	// else{
+	// 	$params['grouping'] = 'nid';
+	// 	$params['start_date'] = time()-9676800;
+	// 	$params['end_date'] = time();
+	// 	$params['d'] = '4m';
+	// }
+	// 
+	// $date_range = array(
+	// 	'min' => $params['start_date'],
+	// 	'max' => $params['end_date'],
+	// );
+	
+	//$output = drupal_get_form('webform_stats_date_form',$type_id,$nid,$params);
+	
+	$output_data = webform_stats_report_overview($type_id,$nid,FALSE,FALSE);
+		
+		if(!empty($output_data['extra'])){
+			foreach($output_data['extra'] as $i => $extra){
+				$output .= $extra;
+			}
+		}
+		
+		$output .= $output_data['default'];
+	return $output;
 }
 
 function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALSE, $aggregate = FALSE){
@@ -50,6 +87,10 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 	$header = array();
 	
 	if(!$nid && ($aggregate !== "report_period_start")){
+		$header['nid'] = array(
+			'data' => t('Nid'),
+			'field' => 'nid',
+		);
 		$header['title'] =	array(
 			'data' => t('Title'),
 			'field' => 'title',
@@ -76,7 +117,7 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 		$header["m".$metrics[0]->metric_id."_data"]['sort'] = 'desc';
 	}
 	else{
-		$header['mindate']['sort'] = "desc";
+		$header['mindate']['sort'] = "asc";
 	}
 						
 	$query = webform_stats_render_query_builder($type_id,$nid,$date_range, $aggregate);
@@ -85,10 +126,13 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 	$result = pager_query($sql, 30, 0,$row_count,$query['vars']);	
 	
 	$rows = array();
-
+	
 	while ($node = db_fetch_object($result)){
 		$row_data = array();
-		if(!$nid && ($aggregate !== "report_period_start")){$row_data[] = l($node->title,"webform_stats/$type_id/$node->nid");}
+		if(!$nid && ($aggregate !== "report_period_start")){
+			$row_data[] = $node->nid;
+			$row_data[] = l($node->title,"webform_stats/$type_id/$node->nid");
+		}
 			$row_data[] = date('M j, Y',$node->report_period_start);
 			$row_data[] = date('M j, Y',$node->report_period_end);
 		foreach($metrics as $i => $metric){
@@ -96,10 +140,20 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 			$row_data[] = number_format($node->$data_field);
 		}
 		$rows[] = $row_data;
+		$query_data[] = $node;
 	}
 	$output = theme('table', $header, $rows);
 	$output .= theme('pager', NULL, 30, 0);
-	return $output;
+	
+	//Allow other modules to utilize this data
+
+	$additional_output = module_invoke_all('webform_stats_display_data',$query_data,$type_id,$metrics, $date_range, $aggregate);
+
+	
+	return array(
+		"default" => $output,
+		"extra" => $additional_output,
+	);
 }
 
 function webform_stats_render_query_builder($type_id,$node = FALSE,$date_range = FALSE, $aggregate = FALSE){
@@ -175,7 +229,7 @@ function webform_stats_render_query_builder($type_id,$node = FALSE,$date_range =
 		$group_criteria = "";	
 	}
 	//Add COUNT and MAX/MIN Aggregate function to the report_period fields if aggregation is active
-	$wsr_fields = ($aggregate) ? "node.title as title, COUNT(wsr.report_period_start) reports, MIN(wsr.report_period_start) report_period_start, MAX(wsr.report_period_end) report_period_end, " : "node.title as title, wsr.report_period_start report_period_start, wsr.report_period_end report_period_end, ";
+	$wsr_fields = ($aggregate) ? "node.nid, node.title as title, COUNT(wsr.report_period_start) reports, MIN(wsr.report_period_start) report_period_start, MAX(wsr.report_period_end) report_period_end, " : "node.nid, node.title as title, wsr.report_period_start report_period_start, wsr.report_period_end report_period_end, ";
 
 	$sql = 
 		"SELECT wsr.nid, " .
@@ -222,7 +276,7 @@ function webform_stats_date_form(&$form,$type_id,$nid = FALSE,$params){
 		$time_periods[$i] = $i;
 	}
 	$time_periods["all"] = "Everything";
-	$time_periods["custom"] = "Custom";
+	$time_periods["custom"] = "Custom (Use calendar below)";
 
   $format = 'Y-m-d';
 
