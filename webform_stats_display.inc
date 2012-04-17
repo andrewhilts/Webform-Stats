@@ -127,16 +127,22 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 	
 	$rows = array();
 	
+	//Build a summary row to place at the end of the rows array
 	$summary_row = array();
+	
+	//Do not add node details to summary when aggregating by time period
 	if(!$nid && ($aggregate !== "report_period_start")){
 		$summary_row['nid'] = "";
 		$summary_row['title'] = "TOTALS:";
 	}
+	//Do not summarize the date columns
 	$summary_row['startdate'] = "";
 	$summary_row['enddate'] = "";
 	
 	while ($node = db_fetch_object($result)){
 		$row_data = array();
+		
+		//Do not add node details when aggregating by time period
 		if(!$nid && ($aggregate !== "report_period_start")){
 			$row_data[] = $node->nid;
 			$row_data[] = l($node->title,"webform_stats/$type_id/$node->nid");
@@ -146,17 +152,22 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 		foreach($metrics as $i => $metric){
 			$data_field = "m".$metric->metric_id."_data";
 			$row_data[] = number_format($node->$data_field);
+			
+			//Add an array item to the summary row for each metric
 			$summary_row[$metric->metric_id] = $node->$data_field+$summary_row[$metric->metric_id];
+			
 		}
 		$rows[] = $row_data;
 		$query_data[] = $node;
 	}
 	foreach($summary_row as $i => $field){
 		if(is_numeric($field)){
+			//Format the summary rows for legibility
 			$summary_row[$i] = number_format($field);
 		}
 	}
-	$rows[] = $summary_row;
+	//Add "total" class to the total row (put in theme function)
+	$rows[] = array('data' => $summary_row, 'class' => 'total');
 	$output = theme('table', $header, $rows);
 	$output .= theme('pager', NULL, 50, 0);
 	
