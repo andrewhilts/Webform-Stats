@@ -166,8 +166,9 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $date_range = FALS
 			$summary_row[$i] = number_format($field);
 		}
 	}
-	//Add "total" class to the total row (put in theme function)
+	//Add summary row, and "total" class (put in theme function)
 	$rows[] = array('data' => $summary_row, 'class' => 'total');
+	
 	$output = theme('table', $header, $rows);
 	$output .= theme('pager', NULL, 50, 0);
 	
