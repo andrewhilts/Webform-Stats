@@ -375,12 +375,16 @@ function webform_stats_debug($type,$message){
 /**
  * Implements hook_theme().
  */
-// function webform_stats_theme() {
-//   $theme = array(
-//       'webform_stats_metrics_table' => array(
-//       'arguments' => array('metrics' => NULL),
-// 			'file' => 'webform_stats.admin.inc',
-//     ),
-//   );
-//   return $theme;
-// }
+function webform_stats_theme() {
+  $theme = array(
+    'webform_stats_table_summary_row' => array(
+      'arguments' => array('summary_row' => NULL),
+			'file' => 'webform_stats.display.inc',
+    ),
+		'webform_stats_header' => array(
+			'arguments' => array('text' => NULL,'level' => NULL),
+			'file' => 'webform_stats.display.inc',
+		),
+  );
+  return $theme;
+}
