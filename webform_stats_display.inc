@@ -149,7 +149,7 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $display_args){
 		//Do not add node details when aggregating by time period
 		if(!$nid && ($aggregate !== "report_period_start")){
 			$row_data[] = $node->nid;
-			$row_data[] = l($node->title,"webform_stats/$type_id/$node->nid");
+			$row_data[] = l($node->title,"admin/reports/webform_stats/$type_id/$node->nid");
 		}
 			$row_data[] = date('M j, Y',$node->report_period_start);
 			$row_data[] = date('M j, Y',$node->report_period_end);
@@ -401,10 +401,10 @@ function webform_stats_date_form(&$form,$type_id,$nid = FALSE,$display_args){
 	);
 	$form['path'] = array(
 		'#type' => 'hidden',
-		'#default_value' => "webform_stats/$type_id",
+		'#default_value' => "admin/reports/webform_stats/$type_id",
 	);
 	if($nid){
-		$form['path']['#default_value'] = "webform_stats/$type_id/$nid";
+		$form['path']['#default_value'] = "admin/reports/webform_stats/$type_id/$nid";
 	}
   return $form;
 }

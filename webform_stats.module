@@ -36,23 +36,7 @@ function webform_stats_menu(){
 	
 	webform_stats_build_report_type_menu_options($items);
 	
-	// $items['admin/settings/webform_stats/%'] = array(
-	//     'title' => t('Report Type Settings'),
-	//     'description' => t('Configure how reports are generated for this report type'),
-	//     'page callback' => 'webform_stats_generator_admin_type',
-	//     'access arguments' => array('access administration pages'),
-	// 	'file' => 'webform_stats_generator.admin.inc',
-	//     'type' => MENU_NORMAL_ITEM,
-	//    );
-	// $items['admin/settings/webform_stats/add'] = array(
-	//     'title' => t('Add a Report Type'),
-	//     'description' => t('Add a new report type'),
-	//     'page callback' => 'webform_stats_generator_admin_type_add',
-	//     'access arguments' => array('access administration pages'),
-	// 	'file' => 'webform_stats_generator.admin.inc',
-	//     'type' => MENU_NORMAL_ITEM,
-	//    );
-	$items['webform_stats'] = array(
+	$items['admin/reports/webform_stats'] = array(
 	    'title' => t('Webform Stats Reports'),
 	    'description' => t('Overview of all report groupings'),
 	    'page callback' => 'webform_stats_display_index',
@@ -60,14 +44,7 @@ function webform_stats_menu(){
 			'file' => 'webform_stats_display.inc',
 	    'type' => MENU_NORMAL_ITEM,
 	   );
-	// $items['webform_stats/%'] = array(
-	//     'title' => t('Webform Report Generator'),
-	//     'description' => t('Configure how Webform Reports are generated'),
-	//     'page callback' => 'webform_stats_generator_display',
-	//     'access arguments' => array('access administration pages'),
-	// 	'page arguments'=> array(1),
-	//     'type' => MENU_NORMAL_ITEM,
-	//    );
+
   return $items;
 }
 
@@ -117,21 +94,21 @@ $items["admin/settings/webform_stats/type/$type_id/metrics"] = array(
 				'weight' => 3,
 				'type' => MENU_LOCAL_TASK,
         );
-$items["webform_stats/$type_id"] = array(
+$items["admin/reports/webform_stats/$type_id"] = array(
   	    'title' => $value->name,
   	    'description' => 'View stats for this grouping',
   			'page callback' => 'webform_stats_display_type',
-        'page arguments' => array(1),
+        'page arguments' => array(3),
   			'access arguments' => array('access administration pages'),
         'file' => 'webform_stats_display.inc',
 				'weight' => $i,
 				'type' => MENU_LOCAL_TASK,
         );
-$items["webform_stats/$type_id/%"] = array(
+$items["admin/reports/webform_stats/$type_id/%"] = array(
   	    'title' => $value->name,
   	    'description' => 'View stats for this node',
   			'page callback' => 'webform_stats_display_node_overview',
-        'page arguments' => array(1,2),
+        'page arguments' => array(3,4),
   			'access arguments' => array('access administration pages'),
         'file' => 'webform_stats_display.inc',
 				'weight' => $i,
@@ -321,6 +298,7 @@ function webform_stats_get_type_details($type_id){
 function webform_stats_get_webforms() {
   $webforms = array();
   $webform_types = variable_get('webform_node_types', array('webform'));
+
   $placeholders = db_placeholders($webform_types, 'varchar');
   $result = db_query("SELECT n.nid, n.title FROM {node} n WHERE n.type in ($placeholders) ORDER BY n.language, n.nid DESC", $webform_types);
   while ($row = db_fetch_object($result)) {
