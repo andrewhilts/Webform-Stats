@@ -207,7 +207,7 @@ function webform_stats_render_query_builder($type_id,$node = FALSE,$date_range =
 		}	
 		//Add table join for particular report's data for metric
 		$joins[] = 
-			"INNER JOIN {webform_stats_report_data} as m".$metric->metric_id." ON " .
+			"LEFT OUTER JOIN {webform_stats_report_data} as m".$metric->metric_id." ON " .
 			"(wsr.report_id = m".$metric->metric_id.".report_id AND m".$metric->metric_id.".metric_id = " .
 			$metric->metric_id.")";
 	}
