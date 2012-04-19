@@ -9,8 +9,8 @@ function webform_stats_display_index(){
 
 function _webform_stats_display_params_build($default_aggregate){
 	$display_args = array(
-		'start_date' => time()-9676800,
-		'end_date' => time(),
+		'start_date' => intval(time()-9676800),
+		'end_date' => intval(time()),
 		'date_range' => '4m',
 		'limit' => 10,
 		'grouping' => $default_aggregate,
@@ -52,7 +52,7 @@ function webform_stats_display_type($type_id){
 function webform_stats_display_node_overview($type_id,$nid){
 	
 	$display_args = _webform_stats_display_params_build('report_period_start');
-	
+
 	$node = node_load($nid);
 	
 	$output .= drupal_get_form('webform_stats_date_form',$type_id,$nid,$display_args);
@@ -176,7 +176,7 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $display_args){
 	$themed_pager = theme('pager', NULL, $limit);
 	
 	$output = $themed_pager;
-	$output .= theme('table', $header, $rows);
+	$output .= theme('table', $header, $rows, array('class' => 'tablesort'));
 	$output .= $themed_pager;
 	
 	
