@@ -9,7 +9,7 @@ function webform_stats_menu(){
 	    'title' => t('Webform Stats Settings'),
 	    'description' => t('Configure how Webform Stats Reports are generated'),
 	    'page callback' => 'webform_stats_admin',
-	    'access arguments' => array('access administration pages'),
+	    'access arguments' => array('edit webform stats groupings'),
 			'file' => 'webform_stats.admin.inc',
 	    'type' => MENU_NORMAL_ITEM,
 	   );
@@ -18,7 +18,7 @@ function webform_stats_menu(){
 	    'title' => t('Module Settings'),
 	    'description' => t('Configure General Settings'),
 	    'page callback' => 'webform_stats_admin',
-	    'access arguments' => array('access administration pages'),
+	    'access arguments' => array('edit webform stats groupings'),
 			'file' => 'webform_stats.admin.inc',
 	    'type' => MENU_DEFAULT_LOCAL_TASK,
 			'weight' => -50,
@@ -28,7 +28,7 @@ function webform_stats_menu(){
 	    'title' => t('Add Grouping'),
 	    'description' => t('Add a new statistical grouping'),
 	    'page callback' => 'webform_stats_admin_type_add',
-	    'access arguments' => array('access administration pages'),
+	    'access arguments' => array('create webform stats groupings'),
 			'file' => 'webform_stats.admin.inc',
 	    'type' => MENU_LOCAL_TASK,
 			'weight' => -40,
@@ -40,7 +40,7 @@ function webform_stats_menu(){
 	    'title' => t('Webform Stats Reports'),
 	    'description' => t('Overview of all report groupings'),
 	    'page callback' => 'webform_stats_display_index',
-	    'access arguments' => array('access administration pages'),
+	    'access arguments' => array('edit webform stats groupings'),
 			'file' => 'webform_stats_display.inc',
 	    'type' => MENU_NORMAL_ITEM,
 	   );
@@ -59,7 +59,7 @@ $items["admin/settings/webform_stats/type/$type_id"] = array(
   	    'description' => 'Manage Statistical Groups',
   			'page callback' => 'webform_stats_admin_type',
         'page arguments' => array(4),
-  			'access arguments' => array('access administration pages'),
+  			'access arguments' => array('edit webform stats groupings'),
         'file' => 'webform_stats.admin.inc',
 				'weight' => $i,
         );
@@ -69,7 +69,7 @@ $items["admin/settings/webform_stats/type/$type_id/manage"] = array(
   	    'description' => 'Manage Statistical Group Settings',
   			'page callback' => 'webform_stats_admin_type',
         'page arguments' => array(4),
-  			'access arguments' => array('access administration pages'),
+  			'access arguments' => array('edit webform stats groupings'),
         'file' => 'webform_stats.admin.inc',
 				'type' => MENU_DEFAULT_LOCAL_TASK,
 				'weight' => 1,
@@ -79,7 +79,7 @@ $items["admin/settings/webform_stats/type/$type_id/nodes"] = array(
   	    'description' => 'Manage Statistical Group Nodes',
   			'page callback' => 'webform_stats_admin_type_nodes',
         'page arguments' => array(4),
-  			'access arguments' => array('access administration pages'),
+  			'access arguments' => array('edit webform stats groupings'),
         'file' => 'webform_stats.admin.inc',
 				'weight' => 2,
 				'type' => MENU_LOCAL_TASK,
@@ -89,7 +89,7 @@ $items["admin/settings/webform_stats/type/$type_id/metrics"] = array(
   	    'description' => 'Manage Statistical Group Metrics',
   			'page callback' => 'webform_stats_admin_type_metrics',
         'page arguments' => array(4),
-  			'access arguments' => array('access administration pages'),
+  			'access arguments' => array('edit webform stats groupings'),
         'file' => 'webform_stats.admin.inc',
 				'weight' => 3,
 				'type' => MENU_LOCAL_TASK,
@@ -99,7 +99,7 @@ $items["admin/reports/webform_stats/$type_id"] = array(
   	    'description' => 'View stats for this grouping',
   			'page callback' => 'webform_stats_display_type',
         'page arguments' => array(3),
-  			'access arguments' => array('access administration pages'),
+  			'access arguments' => array('view webform stats reports'),
         'file' => 'webform_stats_display.inc',
 				'weight' => $i,
 				'type' => MENU_LOCAL_TASK,
@@ -109,7 +109,7 @@ $items["admin/reports/webform_stats/$type_id/%"] = array(
   	    'description' => 'View stats for this node',
   			'page callback' => 'webform_stats_display_node_overview',
         'page arguments' => array(3,4),
-  			'access arguments' => array('access administration pages'),
+  			'access arguments' => array('view webform stats reports'),
         'file' => 'webform_stats_display.inc',
 				'weight' => $i,
 				'type' => MENU_LOCAL_TASK,
@@ -119,7 +119,7 @@ $items["admin/reports/webform_stats/$type_id/%"] = array(
 	    'title' => t('Delete Webform Stats Metric'),
 	    'page callback' => 'drupal_get_form',
       'page arguments' => array('webform_stats_metric_delete_confirm_form',4),
-'access arguments' => array('access administration pages'),
+'access arguments' => array('delete webform stats metrics'),
 	    'type' => MENU_CALLBACK,
 	    'file' => 'webform_stats.admin.inc',
 	  );
@@ -127,12 +127,27 @@ $items["admin/reports/webform_stats/$type_id/%"] = array(
 	    'title' => t('Edit Webform Stats Metric'),
 	    'page callback' => 'drupal_get_form',
       'page arguments' => array('webform_stats_metric_edit_form',4),
-'access arguments' => array('access administration pages'),
+'access arguments' => array('edit webform stats metrics'),
 	    'type' => MENU_CALLBACK,
 	    'file' => 'webform_stats.admin.inc',
 	  );
 		
 	}
+}
+
+/**
+ * Implements hook_perm().
+ */
+function webform_stats_perm() {
+  return array(
+		'view webform stats reports',
+		'edit webform stats groupings',
+		'create webform stats groupings',
+		'delete webform stats groupings',
+		'create webform stats metrics',
+		'delete webform stats metrics',
+		'edit webform stats metrics',
+	);
 }
 
 /**
