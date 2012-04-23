@@ -18,7 +18,7 @@ class webform_stats_node_report_link_handler extends views_handler_field_node_li
     $node = new stdClass();
     $node->nid = $values->{$this->aliases['nid']};
 		//EDIT FOR proper permissions
-    if (!node_access('update', $node)) {
+    if (!user_access('view webform stats reports')) {
       return;
     }
 
