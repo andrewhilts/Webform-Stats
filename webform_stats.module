@@ -135,6 +135,16 @@ $items["admin/reports/webform_stats/$type_id/%"] = array(
 	}
 }
 
+/**
+ * Implements hook_views_api().
+ */
+function webform_stats_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'webform_stats') . '/views',
+  );
+}
+
 function webform_stats_cron(){
 	module_load_include('inc', 'webform_stats', 'webform_stats_process');
 	$stat_groupings = webform_stats_get_types();
@@ -348,6 +358,17 @@ function webform_stats_debug($type,$message){
 	if(variable_get('webform_stats_debug',FALSE)){
 		watchdog($type,$message);
 	}
+}
+
+function webform_stats_get_node_path($nid){
+	$sql = "SELECT wsn.type_id type_id, wsn.nid nid, count(wsn.nid) as counter FROM webform_stats_nodes wsn INNER JOIN webform_stats_reports wsr ON (wsn.nid = wsr.nid AND wsn.type_id = wsn.type_id) AND wsn.nid = %d GROUP BY wsn.type_id ORDER BY counter DESC";
+	$result = db_query($sql,$nid);
+	$type = db_fetch_object($result);
+	if(!$type->counter){
+		return FALSE;
+	}
+	$path = "admin/reports/webform_stats/".$type->type_id."/".$nid;
+	return $path;
 }
 
 /**
