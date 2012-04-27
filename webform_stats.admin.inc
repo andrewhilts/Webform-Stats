@@ -293,6 +293,12 @@ function webform_stats_types_metrics_form_submit ($form,&$form_state) {
   $metric->uniques = $form_state['values']['uniques'];
   $metric->type_id = $form_state['values']['type'];
   drupal_write_record('webform_stats_report_type_metrics',$metric);
+  //Fire new metric hook
+  module_invoke_all('webform_stats_type_metric_add');
+}
+
+function webform_stats_type_metric_add(){
+  dsm("yo");
 }
 
 function webform_stats_metric_edit_form(&$form_state, $metric_id)
