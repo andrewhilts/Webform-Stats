@@ -364,6 +364,20 @@ function webform_stats_get_metric($metric_id){
   return $metric;
 }
 
+//Mark nodes as either complete or incomplete
+function webform_stats_type_node_mark_complete($nid,$type_id,$update = "complete"){
+  switch($update){
+    case "incomplete":
+      $complete_status = 0;
+      break;
+    default:
+      $complete_status = 1;
+      break;
+  }
+  $sql = "UPDATE {webform_stats_nodes} SET complete = %d WHERE nid = %d AND type_id = %d LIMIT 1";
+  db_query($sql,$complete_status,$nid,$type_id);
+}
+
 function webform_stats_base_date_factor($date,$base_date,$interval){
   $diff = $date - $base_date;
   return (floor($diff/$interval)*$interval)+$base_date;
