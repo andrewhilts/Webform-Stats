@@ -303,7 +303,7 @@ function webform_stats_types_metrics_form_submit ($form,&$form_state) {
 function webform_stats_webform_stats_type_metric_add($type_id){
   //loop through all type nodes and mark as incomplete
   $nids = webform_stats_get_type_webforms($type_id);
-  foreach($nids as $i $nid){
+  foreach($nids as $i => $nid){
     webform_stats_type_node_mark_complete($nid,$type_id,"incomplete");
   }
 }
