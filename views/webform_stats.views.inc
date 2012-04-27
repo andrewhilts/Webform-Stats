@@ -19,7 +19,7 @@ $data['node']['webform_stats_node_report_link_handler'] = array(
  * Implements hook_views_handlers().
  */
 function webform_stats_views_handlers() {
-	return array(
+  return array(
     'info' => array(
       'path' => drupal_get_path('module', 'webform_stats') . '/views',
     ),
@@ -28,6 +28,6 @@ function webform_stats_views_handlers() {
         'parent' => 'views_handler_field_node_link',
         'file' => 'webform_stats_node_report_link_handler.inc',
     ),
-		),
-  );	
+    ),
+  );
 }

@@ -17,15 +17,15 @@ class webform_stats_node_report_link_handler extends views_handler_field_node_li
     // ensure user has access to edit this node.
     $node = new stdClass();
     $node->nid = $values->{$this->aliases['nid']};
-		//EDIT FOR proper permissions
+    //EDIT FOR proper permissions
     if (!user_access('view webform stats reports')) {
       return;
     }
 
-		$path = webform_stats_get_node_path($node->nid);
-		if(!$path){
-			return t('--');
-		}
+    $path = webform_stats_get_node_path($node->nid);
+    if(!$path){
+      return t('--');
+    }
     $text = !empty($this->options['text']) ? $this->options['text'] : t('Report');
     return l($text, $path);
   }
