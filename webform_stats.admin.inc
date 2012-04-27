@@ -298,7 +298,7 @@ function webform_stats_types_metrics_form_submit ($form,&$form_state) {
 }
 
 /*
- * Implementation of hook_webfrm_stats_type_metric_add();
+ * Implementation of hook_webform_stats_type_metric_add();
  */
 function webform_stats_webform_stats_type_metric_add($type_id){
   //loop through all type nodes and mark as incomplete
