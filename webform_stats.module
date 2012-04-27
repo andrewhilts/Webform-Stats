@@ -4,46 +4,46 @@
  * Implementation of hook_menu()
  */
 function webform_stats_menu(){
-	$items = array();
-	$items['admin/settings/webform_stats'] = array(
-	    'title' => t('Webform Stats Settings'),
-	    'description' => t('Configure how Webform Stats Reports are generated'),
-	    'page callback' => 'webform_stats_admin',
-	    'access arguments' => array('edit webform stats groupings'),
-			'file' => 'webform_stats.admin.inc',
-	    'type' => MENU_NORMAL_ITEM,
-	   );
-	
-		$items['admin/settings/webform_stats/settings'] = array(
-	    'title' => t('Module Settings'),
-	    'description' => t('Configure General Settings'),
-	    'page callback' => 'webform_stats_admin',
-	    'access arguments' => array('edit webform stats groupings'),
-			'file' => 'webform_stats.admin.inc',
-	    'type' => MENU_DEFAULT_LOCAL_TASK,
-			'weight' => -50,
-	   );
-	
-		$items['admin/settings/webform_stats/type/add'] = array(
-	    'title' => t('Add Grouping'),
-	    'description' => t('Add a new statistical grouping'),
-	    'page callback' => 'webform_stats_admin_type_add',
-	    'access arguments' => array('create webform stats groupings'),
-			'file' => 'webform_stats.admin.inc',
-	    'type' => MENU_LOCAL_TASK,
-			'weight' => -40,
-	   );
-	
-	webform_stats_build_report_type_menu_options($items);
-	
-	$items['admin/reports/webform_stats'] = array(
-	    'title' => t('Webform Stats Reports'),
-	    'description' => t('Overview of all report groupings'),
-	    'page callback' => 'webform_stats_display_index',
-	    'access arguments' => array('edit webform stats groupings'),
-			'file' => 'webform_stats_display.inc',
-	    'type' => MENU_NORMAL_ITEM,
-	   );
+  $items = array();
+  $items['admin/settings/webform_stats'] = array(
+      'title' => t('Webform Stats Settings'),
+      'description' => t('Configure how Webform Stats Reports are generated'),
+      'page callback' => 'webform_stats_admin',
+      'access arguments' => array('edit webform stats groupings'),
+      'file' => 'webform_stats.admin.inc',
+      'type' => MENU_NORMAL_ITEM,
+     );
+
+    $items['admin/settings/webform_stats/settings'] = array(
+      'title' => t('Module Settings'),
+      'description' => t('Configure General Settings'),
+      'page callback' => 'webform_stats_admin',
+      'access arguments' => array('edit webform stats groupings'),
+      'file' => 'webform_stats.admin.inc',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -50,
+     );
+
+    $items['admin/settings/webform_stats/type/add'] = array(
+      'title' => t('Add Grouping'),
+      'description' => t('Add a new statistical grouping'),
+      'page callback' => 'webform_stats_admin_type_add',
+      'access arguments' => array('create webform stats groupings'),
+      'file' => 'webform_stats.admin.inc',
+      'type' => MENU_LOCAL_TASK,
+      'weight' => -40,
+     );
+
+  webform_stats_build_report_type_menu_options($items);
+
+  $items['admin/reports/webform_stats'] = array(
+      'title' => t('Webform Stats Reports'),
+      'description' => t('Overview of all report groupings'),
+      'page callback' => 'webform_stats_display_index',
+      'access arguments' => array('edit webform stats groupings'),
+      'file' => 'webform_stats_display.inc',
+      'type' => MENU_NORMAL_ITEM,
+     );
 
   return $items;
 }
@@ -53,86 +53,86 @@ function webform_stats_build_report_type_menu_options(&$items){
   $report_types = webform_stats_get_types();
   if(!empty($report_types)){
     foreach($report_types as $i => $value){
-			$type_id = $value->type_id;
+      $type_id = $value->type_id;
 $items["admin/settings/webform_stats/type/$type_id"] = array(
-  	    'title' => $value->name,
-  	    'description' => 'Manage Statistical Groups',
-  			'page callback' => 'webform_stats_admin_type',
+        'title' => $value->name,
+        'description' => 'Manage Statistical Groups',
+        'page callback' => 'webform_stats_admin_type',
         'page arguments' => array(4),
-  			'access arguments' => array('edit webform stats groupings'),
+        'access arguments' => array('edit webform stats groupings'),
         'file' => 'webform_stats.admin.inc',
-				'weight' => $i,
+        'weight' => $i,
         );
         $items["admin/settings/webform_stats/type/$type_id"]['type'] = MENU_LOCAL_TASK;
 $items["admin/settings/webform_stats/type/$type_id/manage"] = array(
-  	    'title' => t('Grouping Settings'),
-  	    'description' => 'Manage Statistical Group Settings',
-  			'page callback' => 'webform_stats_admin_type',
+        'title' => t('Grouping Settings'),
+        'description' => 'Manage Statistical Group Settings',
+        'page callback' => 'webform_stats_admin_type',
         'page arguments' => array(4),
-  			'access arguments' => array('edit webform stats groupings'),
+        'access arguments' => array('edit webform stats groupings'),
         'file' => 'webform_stats.admin.inc',
-				'type' => MENU_DEFAULT_LOCAL_TASK,
-				'weight' => 1,
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+        'weight' => 1,
         );
 $items["admin/settings/webform_stats/type/$type_id/nodes"] = array(
-  	    'title' => t('Grouping Nodes'),
-  	    'description' => 'Manage Statistical Group Nodes',
-  			'page callback' => 'webform_stats_admin_type_nodes',
+        'title' => t('Grouping Nodes'),
+        'description' => 'Manage Statistical Group Nodes',
+        'page callback' => 'webform_stats_admin_type_nodes',
         'page arguments' => array(4),
-  			'access arguments' => array('edit webform stats groupings'),
+        'access arguments' => array('edit webform stats groupings'),
         'file' => 'webform_stats.admin.inc',
-				'weight' => 2,
-				'type' => MENU_LOCAL_TASK,
+        'weight' => 2,
+        'type' => MENU_LOCAL_TASK,
         );
 $items["admin/settings/webform_stats/type/$type_id/metrics"] = array(
-  	    'title' => t('Grouping Metrics'),
-  	    'description' => 'Manage Statistical Group Metrics',
-  			'page callback' => 'webform_stats_admin_type_metrics',
+        'title' => t('Grouping Metrics'),
+        'description' => 'Manage Statistical Group Metrics',
+        'page callback' => 'webform_stats_admin_type_metrics',
         'page arguments' => array(4),
-  			'access arguments' => array('edit webform stats groupings'),
+        'access arguments' => array('edit webform stats groupings'),
         'file' => 'webform_stats.admin.inc',
-				'weight' => 3,
-				'type' => MENU_LOCAL_TASK,
+        'weight' => 3,
+        'type' => MENU_LOCAL_TASK,
         );
 $items["admin/reports/webform_stats/$type_id"] = array(
-  	    'title' => $value->name,
-  	    'description' => 'View stats for this grouping',
-  			'page callback' => 'webform_stats_display_type',
+        'title' => $value->name,
+        'description' => 'View stats for this grouping',
+        'page callback' => 'webform_stats_display_type',
         'page arguments' => array(3),
-  			'access arguments' => array('view webform stats reports'),
+        'access arguments' => array('view webform stats reports'),
         'file' => 'webform_stats_display.inc',
-				'weight' => $i,
-				'type' => MENU_LOCAL_TASK,
+        'weight' => $i,
+        'type' => MENU_LOCAL_TASK,
         );
 $items["admin/reports/webform_stats/$type_id/%"] = array(
-  	    'title' => $value->name,
-  	    'description' => 'View stats for this node',
-  			'page callback' => 'webform_stats_display_node_overview',
+        'title' => $value->name,
+        'description' => 'View stats for this node',
+        'page callback' => 'webform_stats_display_node_overview',
         'page arguments' => array(3,4),
-  			'access arguments' => array('view webform stats reports'),
+        'access arguments' => array('view webform stats reports'),
         'file' => 'webform_stats_display.inc',
-				'weight' => $i,
-				'type' => MENU_LOCAL_TASK,
+        'weight' => $i,
+        'type' => MENU_LOCAL_TASK,
         );
     }
-  	$items['admin/settings/webform_stats/metric_delete/%'] = array(
-	    'title' => t('Delete Webform Stats Metric'),
-	    'page callback' => 'drupal_get_form',
+    $items['admin/settings/webform_stats/metric_delete/%'] = array(
+      'title' => t('Delete Webform Stats Metric'),
+      'page callback' => 'drupal_get_form',
       'page arguments' => array('webform_stats_metric_delete_confirm_form',4),
 'access arguments' => array('delete webform stats metrics'),
-	    'type' => MENU_CALLBACK,
-	    'file' => 'webform_stats.admin.inc',
-	  );
-		$items['admin/settings/webform_stats/metric_edit/%'] = array(
-	    'title' => t('Edit Webform Stats Metric'),
-	    'page callback' => 'drupal_get_form',
+      'type' => MENU_CALLBACK,
+      'file' => 'webform_stats.admin.inc',
+    );
+    $items['admin/settings/webform_stats/metric_edit/%'] = array(
+      'title' => t('Edit Webform Stats Metric'),
+      'page callback' => 'drupal_get_form',
       'page arguments' => array('webform_stats_metric_edit_form',4),
 'access arguments' => array('edit webform stats metrics'),
-	    'type' => MENU_CALLBACK,
-	    'file' => 'webform_stats.admin.inc',
-	  );
-		
-	}
+      'type' => MENU_CALLBACK,
+      'file' => 'webform_stats.admin.inc',
+    );
+
+  }
 }
 
 /**
@@ -140,14 +140,14 @@ $items["admin/reports/webform_stats/$type_id/%"] = array(
  */
 function webform_stats_perm() {
   return array(
-		'view webform stats reports',
-		'edit webform stats groupings',
-		'create webform stats groupings',
-		'delete webform stats groupings',
-		'create webform stats metrics',
-		'delete webform stats metrics',
-		'edit webform stats metrics',
-	);
+    'view webform stats reports',
+    'edit webform stats groupings',
+    'create webform stats groupings',
+    'delete webform stats groupings',
+    'create webform stats metrics',
+    'delete webform stats metrics',
+    'edit webform stats metrics',
+  );
 }
 
 /**
@@ -161,163 +161,163 @@ function webform_stats_views_api() {
 }
 
 function webform_stats_cron(){
-	module_load_include('inc', 'webform_stats', 'webform_stats_process');
-	$stat_groupings = webform_stats_get_types();
-	//Iterate through each stat grouping and check whether it's time to generate reports or not
-	foreach($stat_groupings as $i => $type){
-		$is_time = false;
-		$is_time = webform_stats_type_check_if_time($type);
-		if($is_time){
-			webform_stats_type_queue_process($type->type_id);
-			//work on queue
-		}
-		else{
-			dsm('not time');
-			//Destroy the cue that exists (to rebuild next time).
-		}
-	}
+  module_load_include('inc', 'webform_stats', 'webform_stats_process');
+  $stat_groupings = webform_stats_get_types();
+  //Iterate through each stat grouping and check whether it's time to generate reports or not
+  foreach($stat_groupings as $i => $type){
+    $is_time = false;
+    $is_time = webform_stats_type_check_if_time($type);
+    if($is_time){
+      webform_stats_type_queue_process($type->type_id);
+      //work on queue
+    }
+    else{
+      dsm('not time');
+      //Destroy the cue that exists (to rebuild next time).
+    }
+  }
 }
 
 //Create queue workers for each grouping type and each queue type
 function webform_stats_cron_queue_info() {
   foreach(webform_stats_get_types() as $i => $type){
-		$queue_node_prep = "webform_stats_".$type->type_id."_nodeprep";
-		$queue[$queue_node_prep] = array(
-    	'worker callback' => '_webform_stats_queue_node_prep_worker',
-			'time' => 20,
-  	);
-	}
-	$queue["webform_stats_metric_build"] = array(
+    $queue_node_prep = "webform_stats_".$type->type_id."_nodeprep";
+    $queue[$queue_node_prep] = array(
+      'worker callback' => '_webform_stats_queue_node_prep_worker',
+      'time' => 20,
+    );
+  }
+  $queue["webform_stats_metric_build"] = array(
     'worker callback' => '_webform_stats_queue_metric_build_worker',
-		'time' => 20,
+    'time' => 20,
   );
-	$queue["webform_stats_metric_data_get"] = array(
-		'worker callback' => '_webform_stats_queue_metric_data_get_worker',
-		'time' => 20,
-	);
+  $queue["webform_stats_metric_data_get"] = array(
+    'worker callback' => '_webform_stats_queue_metric_data_get_worker',
+    'time' => 20,
+  );
   return $queue;
 }
 
 function _webform_stats_queue_node_prep_worker($item){
-	webform_stats_debug('webform_stats',"Prepping item ".$item['node_info']->nid);
-	module_load_include('inc', 'webform_stats', 'webform_stats_process');
-	
-	//Check for submissions
-	$node_submissions = webform_stats_check_for_submissions($item['node_info']->nid);
-	if($node_submissions){
-		$item['node_info']->submissions = $node_submissions;
-		$type = webform_stats_get_type_details($item['type_id']);
-		
-		$completed = webform_stats_completeness_check($item['node_info'],$type->type_id);
-		if($completed){
-			return "completed";
-		}
-		
-		$metrics = webform_stats_get_type_metrics($item['type_id']);
-		
-		//Get webform cids for each metric
-		$item['cids'] = array();
-		
-		foreach($metrics as $i => $metric){
-			$item['cids'][$metric->metric_id] = webform_stats_get_cid($item['node_info']->nid,$metric);
-		}
-		
-		//Get metric report building queue
-		$queue = drupal_queue_get("webform_stats_metric_build");
-		$queue->createQueue(); // initialize
-		webform_stats_debug('webform_stats','Node '.$item['node_info']->nid.' Metrics: '.count($metrics));
-		foreach($metrics as $i => $metric){
-			//Add metric to item
-			$item['metric'] = $metric;
-			
-			//Check if reports are needed for this type node's metrics
-			$item['report_date_range'] = webform_stats_node_type_metric_data_check($item['node_info'],$type,$metric);
-			//Build range of reports for type node metric	
-			if($item['report_date_range']){
-				$queue->createItem($item);
-			}
-		}
-	}
+  webform_stats_debug('webform_stats',"Prepping item ".$item['node_info']->nid);
+  module_load_include('inc', 'webform_stats', 'webform_stats_process');
+
+  //Check for submissions
+  $node_submissions = webform_stats_check_for_submissions($item['node_info']->nid);
+  if($node_submissions){
+    $item['node_info']->submissions = $node_submissions;
+    $type = webform_stats_get_type_details($item['type_id']);
+
+    $completed = webform_stats_completeness_check($item['node_info'],$type->type_id);
+    if($completed){
+      return "completed";
+    }
+
+    $metrics = webform_stats_get_type_metrics($item['type_id']);
+
+    //Get webform cids for each metric
+    $item['cids'] = array();
+
+    foreach($metrics as $i => $metric){
+      $item['cids'][$metric->metric_id] = webform_stats_get_cid($item['node_info']->nid,$metric);
+    }
+
+    //Get metric report building queue
+    $queue = drupal_queue_get("webform_stats_metric_build");
+    $queue->createQueue(); // initialize
+    webform_stats_debug('webform_stats','Node '.$item['node_info']->nid.' Metrics: '.count($metrics));
+    foreach($metrics as $i => $metric){
+      //Add metric to item
+      $item['metric'] = $metric;
+
+      //Check if reports are needed for this type node's metrics
+      $item['report_date_range'] = webform_stats_node_type_metric_data_check($item['node_info'],$type,$metric);
+      //Build range of reports for type node metric
+      if($item['report_date_range']){
+        $queue->createItem($item);
+      }
+    }
+  }
 }
 
 function _webform_stats_queue_metric_build_worker($item){
-	module_load_include('inc', 'webform_stats', 'webform_stats_process');
-	$type = webform_stats_get_type_details($item['type_id']);
-	
-	//Build array of reporting periods
-	$reporting_periods = webform_stats_build_date_range($item['report_date_range'],$type->report_interval);
-	if(!is_array($reporting_periods)){
-		return FALSE;
-	}
+  module_load_include('inc', 'webform_stats', 'webform_stats_process');
+  $type = webform_stats_get_type_details($item['type_id']);
 
-	//Loop through date range, add reporting workers for each date interval
-	foreach($reporting_periods as $i => $reporting_period){
+  //Build array of reporting periods
+  $reporting_periods = webform_stats_build_date_range($item['report_date_range'],$type->report_interval);
+  if(!is_array($reporting_periods)){
+    return FALSE;
+  }
 
-		if(!$reporting_period->min && !$reporting_period->max){
-			return FALSE;
-		}
+  //Loop through date range, add reporting workers for each date interval
+  foreach($reporting_periods as $i => $reporting_period){
 
-		//Check if report exists for this node/type at for current reporting period. If it does, get report ID; if not, create one and get ID.
-		$report_id = webform_stats_report_init($reporting_period,$item['node_info']->nid,$type->type_id);
-		webform_stats_debug('webform_stats','Working with report '.$report_id."(t".$type->type_id."/n".$item['node_info']->nid."/m".$item['metric']->metric_id.")");
-		//Create worker
-		$items[] = array(
-			'report_id' => $report_id,
-			'nid' => $item['node_info']->nid,
-			'type_id' => $type->type_id,
-			'reporting_period' => $reporting_period,
-			'metric' => $item['metric'],
-			'cids' => $item['cids'],
-		);
-	}
-	
-	$queue = drupal_queue_get('webform_stats_metric_data_get');
-	$queue->createQueue(); // initialize
-	webform_stats_debug('webform_stats','date_range:'.count($items));
-	foreach ($items as $item) {
-		$queue->createItem($item); // each item passed as param to worker
-	}
+    if(!$reporting_period->min && !$reporting_period->max){
+      return FALSE;
+    }
+
+    //Check if report exists for this node/type at for current reporting period. If it does, get report ID; if not, create one and get ID.
+    $report_id = webform_stats_report_init($reporting_period,$item['node_info']->nid,$type->type_id);
+    webform_stats_debug('webform_stats','Working with report '.$report_id."(t".$type->type_id."/n".$item['node_info']->nid."/m".$item['metric']->metric_id.")");
+    //Create worker
+    $items[] = array(
+      'report_id' => $report_id,
+      'nid' => $item['node_info']->nid,
+      'type_id' => $type->type_id,
+      'reporting_period' => $reporting_period,
+      'metric' => $item['metric'],
+      'cids' => $item['cids'],
+    );
+  }
+
+  $queue = drupal_queue_get('webform_stats_metric_data_get');
+  $queue->createQueue(); // initialize
+  webform_stats_debug('webform_stats','date_range:'.count($items));
+  foreach ($items as $item) {
+    $queue->createItem($item); // each item passed as param to worker
+  }
 }
 
 function _webform_stats_queue_metric_data_get_worker($item){
-	module_load_include('inc', 'webform_stats', 'webform_stats_queries');
-	
-	//Query the webform_submitted_data for report metric info. Different queries for different metrics
-	switch($item['metric']->component){
-		case "email":
-			$data = _webform_stats_email_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
-			break;
-		case "select":
-			$data = _webform_stats_select_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
-			break;
-		case "mailchimp":
-			$data = _webform_stats_mailchimp_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
-			break;
-	}
-	
-	$report_data = new Stdclass;
-	$report_data->report_id = $item['report_id'];
-	$report_data->metric_id = $item['metric']->metric_id;
-	$report_data->data = $data;
-	drupal_write_record('webform_stats_report_data',$report_data);
+  module_load_include('inc', 'webform_stats', 'webform_stats_queries');
+
+  //Query the webform_submitted_data for report metric info. Different queries for different metrics
+  switch($item['metric']->component){
+    case "email":
+      $data = _webform_stats_email_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
+      break;
+    case "select":
+      $data = _webform_stats_select_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
+      break;
+    case "mailchimp":
+      $data = _webform_stats_mailchimp_report($item['nid'],$item['reporting_period'],$item['metric'],$item['cids'],$item['type_id'],$item['report_id']);
+      break;
+  }
+
+  $report_data = new Stdclass;
+  $report_data->report_id = $item['report_id'];
+  $report_data->metric_id = $item['metric']->metric_id;
+  $report_data->data = $data;
+  drupal_write_record('webform_stats_report_data',$report_data);
 }
 
 function webform_stats_get_types(){
-	$types = array();
-	$sql = "SELECT * FROM {webform_stats_report_types} ORDER BY type_id ASC";
-	$result = db_query($sql);
-	while($type = db_fetch_object($result)) {
-		$types[] = $type;
-	}
-	return $types;
+  $types = array();
+  $sql = "SELECT * FROM {webform_stats_report_types} ORDER BY type_id ASC";
+  $result = db_query($sql);
+  while($type = db_fetch_object($result)) {
+    $types[] = $type;
+  }
+  return $types;
 }
 
 function webform_stats_get_type_details($type_id){
-	$types = array();
-	$sql = "SELECT * FROM {webform_stats_report_types} WHERE type_id = %d LIMIT 1";
-	$result = db_query($sql,$type_id);
-	$type = db_fetch_object($result);
-	return $type;
+  $types = array();
+  $sql = "SELECT * FROM {webform_stats_report_types} WHERE type_id = %d LIMIT 1";
+  $result = db_query($sql,$type_id);
+  $type = db_fetch_object($result);
+  return $type;
 }
 
 function webform_stats_get_webforms() {
@@ -333,57 +333,57 @@ function webform_stats_get_webforms() {
 }
 
 function webform_stats_get_type_webforms($type,$depth = 'min'){
-	$type_webforms = array();
-	$sql = "SELECT wsn.nid, wsn.complete, n.status published FROM {webform_stats_nodes} wsn INNER JOIN {node} n ON (wsn.nid = n.nid) WHERE wsn.type_id = %d";
-	$result = db_query($sql,$type);
-	while ($row = db_fetch_object($result)) {
+  $type_webforms = array();
+  $sql = "SELECT wsn.nid, wsn.complete, n.status published FROM {webform_stats_nodes} wsn INNER JOIN {node} n ON (wsn.nid = n.nid) WHERE wsn.type_id = %d";
+  $result = db_query($sql,$type);
+  while ($row = db_fetch_object($result)) {
     if($depth == "min"){
-			$type_webforms[$row->nid] = $row->nid;
-		}
-		else{
-			$type_webforms[$row->nid] = $row;
-		}
+      $type_webforms[$row->nid] = $row->nid;
+    }
+    else{
+      $type_webforms[$row->nid] = $row;
+    }
   }
-	return $type_webforms;
+  return $type_webforms;
 }
 
 function webform_stats_get_type_metrics($type_id){
-	$type_metrics = array();
-	$sql = "SELECT * FROM {webform_stats_report_type_metrics} WHERE type_id = %d";
-	$result = db_query($sql,$type_id);
-	while ($metric = db_fetch_object($result)) {
+  $type_metrics = array();
+  $sql = "SELECT * FROM {webform_stats_report_type_metrics} WHERE type_id = %d";
+  $result = db_query($sql,$type_id);
+  while ($metric = db_fetch_object($result)) {
     $type_metrics[] = $metric;
   }
-	return $type_metrics;
+  return $type_metrics;
 }
 
 function webform_stats_get_metric($metric_id){
-	$sql = "SELECT * FROM {webform_stats_report_type_metrics} WHERE metric_id = %d LIMIT 1";
-	$result = db_query($sql,$metric_id);
-	$metric = db_fetch_object($result);
-	return $metric;
+  $sql = "SELECT * FROM {webform_stats_report_type_metrics} WHERE metric_id = %d LIMIT 1";
+  $result = db_query($sql,$metric_id);
+  $metric = db_fetch_object($result);
+  return $metric;
 }
 
 function webform_stats_base_date_factor($date,$base_date,$interval){
-	$diff = $date - $base_date;
-	return (floor($diff/$interval)*$interval)+$base_date;
+  $diff = $date - $base_date;
+  return (floor($diff/$interval)*$interval)+$base_date;
 }
 
 function webform_stats_debug($type,$message){
-	if(variable_get('webform_stats_debug',FALSE)){
-		watchdog($type,$message);
-	}
+  if(variable_get('webform_stats_debug',FALSE)){
+    watchdog($type,$message);
+  }
 }
 
 function webform_stats_get_node_path($nid){
-	$sql = "SELECT wsn.type_id type_id, wsn.nid nid, count(wsn.nid) as counter FROM webform_stats_nodes wsn INNER JOIN webform_stats_reports wsr ON (wsn.nid = wsr.nid AND wsn.type_id = wsn.type_id) AND wsn.nid = %d GROUP BY wsn.type_id ORDER BY counter DESC";
-	$result = db_query($sql,$nid);
-	$type = db_fetch_object($result);
-	if(!$type->counter){
-		return FALSE;
-	}
-	$path = "admin/reports/webform_stats/".$type->type_id."/".$nid;
-	return $path;
+  $sql = "SELECT wsn.type_id type_id, wsn.nid nid, count(wsn.nid) as counter FROM webform_stats_nodes wsn INNER JOIN webform_stats_reports wsr ON (wsn.nid = wsr.nid AND wsn.type_id = wsn.type_id) AND wsn.nid = %d GROUP BY wsn.type_id ORDER BY counter DESC";
+  $result = db_query($sql,$nid);
+  $type = db_fetch_object($result);
+  if(!$type->counter){
+    return FALSE;
+  }
+  $path = "admin/reports/webform_stats/".$type->type_id."/".$nid;
+  return $path;
 }
 
 /**
@@ -393,12 +393,12 @@ function webform_stats_theme() {
   $theme = array(
     'webform_stats_table_summary_row' => array(
       'arguments' => array('summary_row' => NULL),
-			'file' => 'webform_stats.display.inc',
+      'file' => 'webform_stats.display.inc',
     ),
-		'webform_stats_header' => array(
-			'arguments' => array('text' => NULL,'level' => NULL),
-			'file' => 'webform_stats.display.inc',
-		),
+    'webform_stats_header' => array(
+      'arguments' => array('text' => NULL,'level' => NULL),
+      'file' => 'webform_stats.display.inc',
+    ),
   );
   return $theme;
 }

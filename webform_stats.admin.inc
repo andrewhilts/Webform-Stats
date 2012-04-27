@@ -297,7 +297,7 @@ function webform_stats_types_metrics_form_submit ($form,&$form_state) {
   module_invoke_all('webform_stats_type_metric_add');
 }
 
-function webform_stats_type_metric_add(){
+function webform_stats_webform_stats_type_metric_add(){
   dsm("yo");
 }
 
