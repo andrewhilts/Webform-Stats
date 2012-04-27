@@ -294,11 +294,18 @@ function webform_stats_types_metrics_form_submit ($form,&$form_state) {
   $metric->type_id = $form_state['values']['type'];
   drupal_write_record('webform_stats_report_type_metrics',$metric);
   //Fire new metric hook
-  module_invoke_all('webform_stats_type_metric_add');
+  module_invoke_all('webform_stats_type_metric_add',$metric->type_id);
 }
 
-function webform_stats_webform_stats_type_metric_add(){
-  dsm("yo");
+/*
+ * Implementation of hook_webfrm_stats_type_metric_add();
+ */
+function webform_stats_webform_stats_type_metric_add($type_id){
+  //loop through all type nodes and mark as incomplete
+  $nids = webform_stats_get_type_webforms($type_id);
+  foreach($nids as $i $nid){
+    webform_stats_type_node_mark_complete($nid,$type_id,"incomplete");
+  }
 }
 
 function webform_stats_metric_edit_form(&$form_state, $metric_id)
