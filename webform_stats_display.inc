@@ -63,7 +63,9 @@ function webform_stats_display_node_overview($type_id,$nid){
   $display_args['grouping'] = "report_period_start";
   $display_args['limit'] = 10;
   $output_data = webform_stats_report_overview($type_id,$nid,$display_args);
-
+  if(!$output_data){
+    return $output;
+  }
     if(!empty($output_data['extra'])){
       foreach($output_data['extra'] as $i => $extra){
         $output .= $extra;
@@ -126,9 +128,8 @@ function webform_stats_report_overview($type_id,$nid = FALSE, $display_args){
   $count = db_fetch_object($result);
 
   if($count->count == 0){
-    return array(
-      'default' => t("No results. Try adjusting the date.")
-    );
+    drupal_set_message(t("No results. Try a different date range."));
+    return FALSE;
   }
 
   $sql = $query['query'];
