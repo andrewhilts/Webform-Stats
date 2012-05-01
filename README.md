@@ -1,5 +1,14 @@
 ##Webform Stats
 
+###Basic info
+
+name            = "Webform Stats"
+description     = "Generate statistical reports for groups of webforms"
+core            = "6.x"
+version         = "6.x-1.0"
+
+dependencies[]  = webform, drupal_queue
+
 The goal of this module is to automate the creation, storage, and display of reports for a group of webform along a pre-set interval. The use case it has been built for is that of a contest system, where a company runs multiple contests, and would like easily comparable data on the various contests.
 
 ###Design
