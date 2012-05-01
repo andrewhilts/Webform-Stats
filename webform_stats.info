@@ -4,4 +4,5 @@ description     = "Generate statistical reports for groups of webforms"
 core            = "6.x"
 version         = "6.x-1.x-dev"
 
-dependencies[]  = webform, drupal_queue
+dependencies[]  = webform
+dependencies[]  = drupal_queue
