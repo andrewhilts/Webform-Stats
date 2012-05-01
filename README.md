@@ -5,7 +5,7 @@
 name            = "Webform Stats"  
 description     = "Generate statistical reports for groups of webforms"  
 core            = "6.x"  
-version         = "6.x-1.0"  
+version         = "6.x-1.x-dev"  
 
 dependencies[]  = webform, drupal_queue
 
